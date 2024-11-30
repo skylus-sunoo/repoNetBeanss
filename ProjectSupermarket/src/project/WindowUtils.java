@@ -45,8 +45,8 @@ public class WindowUtils {
      */
     public static void initMoving(JFrame frame, JPanel panel) {
         // Initialize the variables to store the position of the mouse
-        final int[] x = {0};
-        final int[] y = {0};
+        int[] x = {0};
+        int[] y = {0};
 
         // Add MouseListener to labelTitle to capture initial mouse press position
         panel.addMouseListener(new MouseAdapter() {

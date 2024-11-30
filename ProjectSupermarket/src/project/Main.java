@@ -2,11 +2,18 @@ package project;
 
 import java.awt.Color;
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import javax.swing.JOptionPane;
+
+import javax.swing.Timer;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import javax.swing.JComponent;
+import project.page.PageCheckout;
+import project.page.PageDeliver;
+import project.page.PageStock;
 
 /**
  *
@@ -14,9 +21,18 @@ import javax.swing.JOptionPane;
  */
 public class Main extends javax.swing.JFrame {
 
-    public static String dbName_Employee = "EmployeeDB";
-    private int userSessionID;
+    public static String dbName = "DB_Supermarket";
+    public static String tbName_Employee = "TB_Employee";
+    public static String tbName_Product = "TB_Product";
+    private int userSessionID = -1;
     private String userSessionName;
+
+    private LogIn LogInFrame;
+
+    // Pages
+    private PageStock PageStock = new PageStock();
+    private PageDeliver PageDeliver = new PageDeliver();
+    private PageCheckout PageCheckout = new PageCheckout();
 
     /**
      * Creates new form Main
@@ -25,6 +41,62 @@ public class Main extends javax.swing.JFrame {
         initComponents();
         setBackground(new Color(0, 0, 0, 0));
         WindowUtils.initMoving(Main.this, panelMenu);
+        WindowUtils.initMoving(Main.this, panelHeader);
+
+        Timer timer = new Timer(1000, e -> updateDateTime());
+        timer.start();
+        updateDateTime();
+
+        setForm(PageStock); // starting page
+        panelMenu.addEventMenuSelected((int index) -> {
+            //System.out.println("index " + index);
+            switch (index) {
+                case 1:
+                    setForm(PageStock);
+                    break;
+                case 2:
+                    setForm(PageDeliver);
+                    break;
+                case 3:
+                    setForm(PageCheckout);
+                    break;
+                case 8:
+                    if (!isUserLogged() && !LogInFrame.isVisible()) {
+                        LogInFrame.setVisible(true);
+                    }
+                    break;
+                case 9:
+                    if (isUserLogged()) {
+                        int log_out = JOptionPane.showConfirmDialog(
+                                this,
+                                "Are you sure you wish to log out?",
+                                "Log Out",
+                                JOptionPane.YES_NO_OPTION,
+                                JOptionPane.QUESTION_MESSAGE
+                        );
+                        if (log_out == JOptionPane.YES_OPTION) {
+                            userLogOut();
+                        }
+                    }
+                    break;
+                default:
+                    break;
+            }
+        }); // every possible pages
+    }
+
+    private void setForm(JComponent com) {
+        panelBody.removeAll();
+        panelBody.add(com);
+        panelBody.repaint();
+        panelBody.revalidate();
+    }
+
+    private void updateDateTime() {
+        // Format the current date and time
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        String currentDateTime = dateFormat.format(new Date());
+        labelDateTime.setText(currentDateTime);
     }
 
     public void setUserSessionID(int userSessionID) {
@@ -38,21 +110,43 @@ public class Main extends javax.swing.JFrame {
     public void updateUserSession() {
         String userSessionIDString = Integer.toString(userSessionID);
         labelUserSession.setText(userSessionIDString);
+//        System.out.println("ID : " + userSessionID);
 
-        String query = "SELECT user_name FROM EmployeeTB WHERE ID = ?";
+        if (userSessionID == -1) {
+            userSessionName = "";
+            labelUserSession.setText("No Account");
+//            System.out.println("No Log : " + userSessionID);
+        } else {
+//            System.out.println("Log : " + userSessionID);
+            String query = "SELECT user_name FROM " + tbName_Employee + " WHERE ID = ?";
 
-        try (Connection conn = Queries.getConnection(Main.dbName_Employee); PreparedStatement stmt = Queries.prepareQueryWithParameters(conn, query, String.valueOf(userSessionID)); ResultSet rs = stmt.executeQuery()) {
-
-            if (rs.next()) {
-                String userName = rs.getString("user_name");
-                userSessionName = userName;
-                labelUserSession.setText(userSessionName);
-                btnUserSession.setText("<html>Welcome,<br>" + userSessionName + "</html>");
+            try (Connection conn = Queries.getConnection(Main.dbName); PreparedStatement pst = Queries.prepareQueryWithParameters(conn, query, userSessionIDString); ResultSet rs = pst.executeQuery()) {
+                if (rs.next()) {
+                    String userName = rs.getString("user_name");
+                    userSessionName = userName;
+                    labelUserSession.setText("Welcome, " + userSessionName);
+                }
+            } catch (SQLException e) {
+                JOptionPane.showMessageDialog(this, "Database error: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+                e.printStackTrace(System.out);
             }
-        } catch (SQLException e) {
-            JOptionPane.showMessageDialog(this, "Database error: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
-            e.printStackTrace(System.out);
         }
+    }
+
+    public void userLogOut() {
+        setUserSessionID(-1);
+        updateUserSession();
+
+        LogInFrame.clearFields();
+    }
+
+    public boolean isUserLogged() {
+        boolean isUserLogged = false;
+        if (userSessionID > 0) {
+            isUserLogged = true;
+        }
+//        System.out.println("Is Logged : " + isUserLogged + "(" + userSessionID + ")");
+        return isUserLogged;
     }
 
     /**
@@ -67,10 +161,11 @@ public class Main extends javax.swing.JFrame {
         menu2 = new project.component.Menu();
         panelBorder = new project.swing.PanelBorder();
         panelMenu = new project.component.Menu();
+        panelBody = new project.component.ShadowPanel();
         panelHeader = new javax.swing.JPanel();
-        btnUserSession = new javax.swing.JButton();
         labelUserSession = new javax.swing.JLabel();
-        shadowPanel1 = new project.component.ShadowPanel();
+        labelDateTime = new javax.swing.JLabel();
+        btnClose = new javax.swing.JButton();
 
         javax.swing.GroupLayout menu2Layout = new javax.swing.GroupLayout(menu2);
         menu2.setLayout(menu2Layout);
@@ -87,31 +182,49 @@ public class Main extends javax.swing.JFrame {
         setTitle("Dashboard");
         setUndecorated(true);
 
+        panelBody.setPreferredSize(new java.awt.Dimension(915, 544));
+        panelBody.setLayout(new java.awt.BorderLayout());
+
+        panelHeader.setBorder(javax.swing.BorderFactory.createEtchedBorder());
+
+        labelUserSession.setFont(new java.awt.Font("Tahoma", 0, 18)); // NOI18N
+        labelUserSession.setText("No Account");
+        labelUserSession.setFocusable(false);
+
+        labelDateTime.setFont(new java.awt.Font("Tahoma", 0, 18)); // NOI18N
+        labelDateTime.setText("Date Time");
+        labelDateTime.setFocusable(false);
+
         javax.swing.GroupLayout panelHeaderLayout = new javax.swing.GroupLayout(panelHeader);
         panelHeader.setLayout(panelHeaderLayout);
         panelHeaderLayout.setHorizontalGroup(
             panelHeaderLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 352, Short.MAX_VALUE)
+            .addGroup(panelHeaderLayout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(labelUserSession, javax.swing.GroupLayout.DEFAULT_SIZE, 208, Short.MAX_VALUE)
+                .addGap(177, 177, 177)
+                .addComponent(labelDateTime, javax.swing.GroupLayout.PREFERRED_SIZE, 223, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(247, 247, 247))
         );
         panelHeaderLayout.setVerticalGroup(
             panelHeaderLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 75, Short.MAX_VALUE)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, panelHeaderLayout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(panelHeaderLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(labelUserSession, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(labelDateTime, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addContainerGap())
         );
 
-        btnUserSession.setText("Sign In");
-
-        labelUserSession.setText("Log In");
-
-        javax.swing.GroupLayout shadowPanel1Layout = new javax.swing.GroupLayout(shadowPanel1);
-        shadowPanel1.setLayout(shadowPanel1Layout);
-        shadowPanel1Layout.setHorizontalGroup(
-            shadowPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 0, Short.MAX_VALUE)
-        );
-        shadowPanel1Layout.setVerticalGroup(
-            shadowPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 0, Short.MAX_VALUE)
-        );
+        btnClose.setIcon(new javax.swing.ImageIcon(getClass().getResource("/project/gfx/interface/cross2.png"))); // NOI18N
+        btnClose.setBorder(null);
+        btnClose.setContentAreaFilled(false);
+        btnClose.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+        btnClose.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnCloseActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout panelBorderLayout = new javax.swing.GroupLayout(panelBorder);
         panelBorder.setLayout(panelBorderLayout);
@@ -122,27 +235,22 @@ public class Main extends javax.swing.JFrame {
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(panelBorderLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(panelBorderLayout.createSequentialGroup()
-                        .addComponent(btnUserSession, javax.swing.GroupLayout.DEFAULT_SIZE, 217, Short.MAX_VALUE)
-                        .addGap(50, 50, 50)
-                        .addComponent(labelUserSession, javax.swing.GroupLayout.PREFERRED_SIZE, 70, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(199, 199, 199)
                         .addComponent(panelHeader, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(0, 1, Short.MAX_VALUE))
-                    .addGroup(panelBorderLayout.createSequentialGroup()
-                        .addComponent(shadowPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addContainerGap())))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(btnClose, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addContainerGap())
+                    .addComponent(panelBody, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
         );
         panelBorderLayout.setVerticalGroup(
             panelBorderLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(panelMenu, javax.swing.GroupLayout.DEFAULT_SIZE, 600, Short.MAX_VALUE)
+            .addComponent(panelMenu, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
             .addGroup(panelBorderLayout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(panelBorderLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(labelUserSession, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(panelHeader, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(btnUserSession, javax.swing.GroupLayout.PREFERRED_SIZE, 63, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(btnClose)
+                    .addComponent(panelHeader, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(shadowPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(panelBody, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addContainerGap())
         );
 
@@ -150,16 +258,22 @@ public class Main extends javax.swing.JFrame {
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(panelBorder, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            .addGroup(layout.createSequentialGroup()
+                .addComponent(panelBorder, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(panelBorder, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            .addComponent(panelBorder, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
 
         pack();
         setLocationRelativeTo(null);
     }// </editor-fold>//GEN-END:initComponents
+
+    private void btnCloseActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnCloseActionPerformed
+        System.exit(0);
+    }//GEN-LAST:event_btnCloseActionPerformed
 
     /**
      * @param args the command line arguments
@@ -192,18 +306,21 @@ public class Main extends javax.swing.JFrame {
         /* Create and display the form */
         Main main = new Main();
         java.awt.EventQueue.invokeLater(() -> {
-            new LogIn(main).setVisible(true);
+            main.LogInFrame = new LogIn(main);
+            main.LogInFrame.setVisible(true);
             main.setVisible(true);
         });
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JButton btnUserSession;
+    private javax.swing.JButton btnClose;
+    private javax.swing.JLabel labelDateTime;
     private javax.swing.JLabel labelUserSession;
     private project.component.Menu menu2;
+    private project.component.ShadowPanel panelBody;
     private project.swing.PanelBorder panelBorder;
     private javax.swing.JPanel panelHeader;
     private project.component.Menu panelMenu;
-    private project.component.ShadowPanel shadowPanel1;
     // End of variables declaration//GEN-END:variables
+
 }

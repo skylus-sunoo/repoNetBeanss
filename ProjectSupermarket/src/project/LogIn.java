@@ -11,6 +11,7 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import static project.Main.tbName_Employee;
 
 /**
  *
@@ -53,6 +54,17 @@ public class LogIn extends javax.swing.JFrame {
         fieldConfirmPassword.getDocument().addDocumentListener(new FieldChangeListener());
         fieldSecurityAnswer.getDocument().addDocumentListener(new FieldChangeListener());
         comboSecurityQuestion.addActionListener(new FieldChangeListener());
+    }
+
+    public void clearFields() {
+        fieldUsername.setText("Enter Username");
+        fieldUsername.setForeground(new Color(153, 153, 153));
+        fieldPassword.setText("Enter Password");
+        fieldPassword.setForeground(new Color(153, 153, 153));
+        fieldConfirmPassword.setText("Enter Password");
+        fieldConfirmPassword.setForeground(new Color(153, 153, 153));
+        fieldSecurityAnswer.setText("Enter Answer");
+        fieldSecurityAnswer.setForeground(new Color(153, 153, 153));
     }
 
     private void loginFieldsRefresh() {
@@ -135,18 +147,19 @@ public class LogIn extends javax.swing.JFrame {
     }
 
     private void saveAccountData(String user_name, String user_password, int user_qsec_index, String user_qsec_answer) {
-        String checkQuery = "SELECT COUNT(*) FROM EmployeeTB WHERE user_name = ?";
-        String insertQuery = "INSERT INTO EmployeeTB (user_name, user_password, user_qsec_index, user_qsec_answer) VALUES (?, ?, ?, ?)";
+        String query = "SELECT COUNT(*) FROM " + tbName_Employee + " WHERE user_name = ?";
 
-        try (Connection conn = Queries.getConnection(Main.dbName_Employee)) {
+        try (Connection conn = Queries.getConnection(Main.dbName)) {
             // Check if the username already exists
-            if (Queries.recordExists(conn, checkQuery, user_name)) {
+            if (Queries.recordExists(conn, query, user_name)) {
                 JOptionPane.showMessageDialog(this, "The username is already taken. Please choose another username.", "Error", JOptionPane.ERROR_MESSAGE);
                 return;
             }
 
             // If the username is unique, create the account
-            Queries.executeUpdate(conn, insertQuery, user_name, user_password, String.valueOf(user_qsec_index), user_qsec_answer);
+            query = "INSERT INTO " + tbName_Employee + " (user_name, user_password, user_qsec_index, user_qsec_answer)\n"
+                    + "VALUES (?, ?, ?, ?)";
+            Queries.executeUpdate(conn, query, user_name, user_password, String.valueOf(user_qsec_index), user_qsec_answer);
             JOptionPane.showMessageDialog(this, "Account created successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
 
             logInAccount();
@@ -157,12 +170,11 @@ public class LogIn extends javax.swing.JFrame {
     }
 
     private void logInAccount() {
-        String user_name = fieldUsername.getText().trim();
+        String user_name = fieldUsername.getText();
         String user_password = new String(fieldPassword.getPassword()).trim();
-        String query = "SELECT * FROM EmployeeTB WHERE user_name = ? AND user_password = ?";
+        String query = "SELECT * FROM " + tbName_Employee + " WHERE user_name = ? AND user_password = ?";
 
-        try (Connection conn = Queries.getConnection(Main.dbName_Employee); PreparedStatement stmt = Queries.prepareQueryWithParameters(conn, query, user_name, user_password); ResultSet rs = stmt.executeQuery()) {
-
+        try (Connection conn = Queries.getConnection(Main.dbName); PreparedStatement pst = Queries.prepareQueryWithParameters(conn, query, user_name, user_password); ResultSet rs = pst.executeQuery()) {
             if (rs.next()) {
                 // Login success
                 int userID = rs.getInt("ID");
@@ -170,7 +182,7 @@ public class LogIn extends javax.swing.JFrame {
                 main.updateUserSession();
 
                 if (!signup_and_login) {
-                    JOptionPane.showMessageDialog(this, "Login Successful!", "Success", JOptionPane.INFORMATION_MESSAGE);
+                    JOptionPane.showMessageDialog(this, "Log In Successful!", "Success", JOptionPane.INFORMATION_MESSAGE);
                 } else {
                     signup_and_login = false;
                 }

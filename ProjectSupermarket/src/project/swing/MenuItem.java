@@ -13,27 +13,29 @@ import java.awt.RenderingHints;
  */
 public class MenuItem extends javax.swing.JPanel {
 
-    private boolean selected;
-    
+    private boolean selected, hover;
+
     public MenuItem(Model_Menu data) {
         initComponents();
         setOpaque(false);
-        
-        if (null!=data.getType()) switch (data.getType()) {
-            case MENU:
-                lbIcon.setIcon(data.toIcon());
-                lbName.setText(data.getName());
-                break;
-            case TITLE:
-                lbIcon.setText(data.getName());
-                lbIcon.setFont(new Font("sansserif", 1, 12));
-                lbName.setVisible(false);
-                break;
-            case EMPTY:
-                lbName.setText(" ");
-                break;
-            default:
-                break;
+
+        if (null != data.getType()) {
+            switch (data.getType()) {
+                case MENU:
+                    lbIcon.setIcon(data.toIcon());
+                    lbName.setText(data.getName());
+                    break;
+                case TITLE:
+                    lbIcon.setText(data.getName());
+                    lbIcon.setFont(new Font("sansserif", 1, 12));
+                    lbName.setVisible(false);
+                    break;
+                case EMPTY:
+                    lbName.setText(" ");
+                    break;
+                default:
+                    break;
+            }
         }
     }
 
@@ -42,18 +44,25 @@ public class MenuItem extends javax.swing.JPanel {
         repaint();
     }
 
+    public void setHover(boolean hover) {
+        this.hover = hover;
+        repaint();
+    }
+
     @Override
     protected void paintComponent(Graphics g) {
-        if(selected){
-            Graphics2D graphics=(Graphics2D)g;
+        if (selected || hover) {
+            Graphics2D graphics = (Graphics2D) g;
             graphics.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-            graphics.setColor(new Color(255, 255, 255, 80));
+            if (selected) {
+                graphics.setColor(new Color(255, 255, 255, 80));
+            } else {
+                graphics.setColor(new Color(255, 255, 255, 20));
+            }
             graphics.fillRoundRect(0, 0, getWidth(), getHeight(), 5, 5);
         }
         super.paintChildren(g); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/OverriddenMethodBody
     }
-    
-    
 
     /**
      * This method is called from within the constructor to initialize the form.

@@ -4,13 +4,13 @@ import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import javax.swing.JOptionPane;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
+import static project.Main.tbName_Employee;
 
 /**
  *
@@ -447,10 +447,12 @@ public class ForgotPassword extends javax.swing.JFrame {
     private void btnNextActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnNextActionPerformed
         String user_name = fieldUsername.getText();
 
-        String query = "SELECT user_name, user_qsec_index, user_qsec_answer FROM EmployeeTB WHERE user_name = ?";
+        String query = "SELECT user_name, user_qsec_index, user_qsec_answer FROM " + tbName_Employee + " WHERE user_name = ?";
 
-        try (Connection conn = Queries.getConnection(Main.dbName_Employee); PreparedStatement stmt = Queries.prepareQueryWithParameters(conn, query, user_name); ResultSet rs = stmt.executeQuery()) {
-
+        try (Connection conn = Queries.getConnection(Main.dbName); PreparedStatement pst = conn.prepareStatement(query)) {
+            pst.setString(1, user_name);
+            ResultSet rs = pst.executeQuery();
+                    
             if (rs.next()) {
                 validUsername = true;
                 loginFieldsRefresh();
@@ -519,18 +521,22 @@ public class ForgotPassword extends javax.swing.JFrame {
             return;
         }
 
-        String query = "UPDATE EmployeeTB SET user_password = ? WHERE user_name = ?";
+        String query = "UPDATE " + tbName_Employee + " SET user_password = ? WHERE user_name = ?";
 
-        try (Connection conn = Queries.getConnection(Main.dbName_Employee); PreparedStatement stmt = Queries.prepareQueryWithParameters(conn, query, user_password, user_name)) {
-
-            int rowsAffected = stmt.executeUpdate();
+        try (Connection conn = Queries.getConnection(Main.dbName); PreparedStatement pst = conn.prepareStatement(query)) {
+            pst.setString(1, user_password);
+            pst.setString(2, user_name);
+            
+            int rowsAffected = pst.executeUpdate();
 
             if (rowsAffected > 0) {
                 JOptionPane.showMessageDialog(this, "Password Update Successful! Logging In.", "Success", JOptionPane.INFORMATION_MESSAGE);
 
-                String selectQuery = "SELECT ID FROM EmployeeTB WHERE user_name = ?";
-                try (PreparedStatement selectStmt = Queries.prepareQueryWithParameters(conn, selectQuery, user_name); ResultSet rs = selectStmt.executeQuery()) {
-
+                String selectQuery = "SELECT ID FROM " + tbName_Employee + " WHERE user_name = ?";
+                try (PreparedStatement selectPst = conn.prepareStatement(selectQuery)) {
+                    selectPst.setString(1, user_name);
+                    ResultSet rs = selectPst.executeQuery();
+                    
                     if (rs.next()) {
                         int userID = rs.getInt("ID");
                         main.setUserSessionID(userID);
