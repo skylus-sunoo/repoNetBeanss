@@ -24,7 +24,7 @@ public class Main extends javax.swing.JFrame {
     public static String dbName = "DB_Supermarket";
     public static String tbName_Employee = "TB_Employee";
     public static String tbName_Product = "TB_Product";
-    private int userSessionID = -1;
+    private static int userSessionID = -1;
     private String userSessionName;
 
     private LogIn LogInFrame;
@@ -52,6 +52,7 @@ public class Main extends javax.swing.JFrame {
             //System.out.println("index " + index);
             switch (index) {
                 case 1:
+                    PageStock.refreshTableStock();
                     setForm(PageStock);
                     break;
                 case 2:
@@ -103,14 +104,14 @@ public class Main extends javax.swing.JFrame {
         this.userSessionID = userSessionID;
     }
 
-    public int getUserSessionID() {
+    public static int getUserSessionID() {
         return userSessionID;
     }
 
     public void updateUserSession() {
         String userSessionIDString = Integer.toString(userSessionID);
         labelUserSession.setText(userSessionIDString);
-//        System.out.println("ID : " + userSessionID);
+//        System.out.println("employee_ID : " + userSessionID);
 
         if (userSessionID == -1) {
             userSessionName = "";
@@ -118,11 +119,11 @@ public class Main extends javax.swing.JFrame {
 //            System.out.println("No Log : " + userSessionID);
         } else {
 //            System.out.println("Log : " + userSessionID);
-            String query = "SELECT user_name FROM " + tbName_Employee + " WHERE ID = ?";
+            String query = "SELECT employee_name FROM " + tbName_Employee + " WHERE employee_ID = ?";
 
             try (Connection conn = Queries.getConnection(Main.dbName); PreparedStatement pst = Queries.prepareQueryWithParameters(conn, query, userSessionIDString); ResultSet rs = pst.executeQuery()) {
                 if (rs.next()) {
-                    String userName = rs.getString("user_name");
+                    String userName = rs.getString("employee_name");
                     userSessionName = userName;
                     labelUserSession.setText("Welcome, " + userSessionName);
                 }
@@ -307,7 +308,7 @@ public class Main extends javax.swing.JFrame {
         Main main = new Main();
         java.awt.EventQueue.invokeLater(() -> {
             main.LogInFrame = new LogIn(main);
-            main.LogInFrame.setVisible(true);
+//            main.LogInFrame.setVisible(true);
             main.setVisible(true);
         });
     }

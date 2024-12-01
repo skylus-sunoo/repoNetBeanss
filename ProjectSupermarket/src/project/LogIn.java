@@ -107,59 +107,59 @@ public class LogIn extends javax.swing.JFrame {
         }
 
         private void checkFields() {
-            String user_name = fieldUsername.getText().trim();
-            String user_password = new String(fieldPassword.getPassword()).trim();
+            String employee_name = fieldUsername.getText().trim();
+            String employee_password = new String(fieldPassword.getPassword()).trim();
             String confirm_Password = new String(fieldConfirmPassword.getPassword()).trim();
-            String user_qsec_answer = fieldSecurityAnswer.getText().trim();
+            String employee_qsec_answer = fieldSecurityAnswer.getText().trim();
 
             if (signup_selected) {
-                boolean isValid = !user_name.isEmpty()
-                        && !user_name.equals("Enter Username")
-                        && !user_password.isEmpty()
-                        && !user_password.equals("Enter Password")
+                boolean isValid = !employee_name.isEmpty()
+                        && !employee_name.equals("Enter Username")
+                        && !employee_password.isEmpty()
+                        && !employee_password.equals("Enter Password")
                         && !confirm_Password.isEmpty()
                         && !confirm_Password.equals("Enter Password")
-                        && !user_qsec_answer.isEmpty()
-                        && !user_qsec_answer.equals("Enter Answer");
+                        && !employee_qsec_answer.isEmpty()
+                        && !employee_qsec_answer.equals("Enter Answer");
                 btnCreateAccount.setEnabled(isValid);
             } else {
-                boolean isValid = !user_name.isEmpty()
-                        && !user_name.equals("Enter Username")
-                        && !user_password.isEmpty()
-                        && !user_password.equals("Enter Password");
+                boolean isValid = !employee_name.isEmpty()
+                        && !employee_name.equals("Enter Username")
+                        && !employee_password.isEmpty()
+                        && !employee_password.equals("Enter Password");
                 btnLogInProceed.setEnabled(isValid);
             }
         }
     }
 
     private void createAccount() {
-        String user_name = fieldUsername.getText();
-        String user_password = new String(fieldPassword.getPassword()).trim();
+        String employee_name = fieldUsername.getText();
+        String employee_password = new String(fieldPassword.getPassword()).trim();
         String confirm_Password = new String(fieldConfirmPassword.getPassword()).trim();
-        int user_qsec_index = comboSecurityQuestion.getSelectedIndex();
-        String user_qsec_answer = fieldSecurityAnswer.getText();
+        int employee_qsec_index = comboSecurityQuestion.getSelectedIndex();
+        String employee_qsec_answer = fieldSecurityAnswer.getText();
 
-        if (!user_password.equals(confirm_Password)) {
+        if (!employee_password.equals(confirm_Password)) {
             JOptionPane.showMessageDialog(this, "Passwords do not match.", "Error", JOptionPane.ERROR_MESSAGE);
         } else {
-            saveAccountData(user_name, user_password, user_qsec_index, user_qsec_answer);
+            saveAccountData(employee_name, employee_password, employee_qsec_index, employee_qsec_answer);
         }
     }
 
-    private void saveAccountData(String user_name, String user_password, int user_qsec_index, String user_qsec_answer) {
-        String query = "SELECT COUNT(*) FROM " + tbName_Employee + " WHERE user_name = ?";
+    private void saveAccountData(String employee_name, String employee_password, int employee_qsec_index, String employee_qsec_answer) {
+        String query = "SELECT COUNT(*) FROM " + tbName_Employee + " WHERE employee_name = ?";
 
         try (Connection conn = Queries.getConnection(Main.dbName)) {
             // Check if the username already exists
-            if (Queries.recordExists(conn, query, user_name)) {
+            if (Queries.recordExists(conn, query, employee_name)) {
                 JOptionPane.showMessageDialog(this, "The username is already taken. Please choose another username.", "Error", JOptionPane.ERROR_MESSAGE);
                 return;
             }
 
             // If the username is unique, create the account
-            query = "INSERT INTO " + tbName_Employee + " (user_name, user_password, user_qsec_index, user_qsec_answer)\n"
+            query = "INSERT INTO " + tbName_Employee + " (employee_name, employee_password, employee_qsec_index, employee_qsec_answer)\n"
                     + "VALUES (?, ?, ?, ?)";
-            Queries.executeUpdate(conn, query, user_name, user_password, String.valueOf(user_qsec_index), user_qsec_answer);
+            Queries.executeUpdate(conn, query, employee_name, employee_password, String.valueOf(employee_qsec_index), employee_qsec_answer);
             JOptionPane.showMessageDialog(this, "Account created successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
 
             logInAccount();
@@ -170,14 +170,14 @@ public class LogIn extends javax.swing.JFrame {
     }
 
     private void logInAccount() {
-        String user_name = fieldUsername.getText();
-        String user_password = new String(fieldPassword.getPassword()).trim();
-        String query = "SELECT * FROM " + tbName_Employee + " WHERE user_name = ? AND user_password = ?";
+        String employee_name = fieldUsername.getText();
+        String employee_password = new String(fieldPassword.getPassword()).trim();
+        String query = "SELECT * FROM " + tbName_Employee + " WHERE employee_name = ? AND employee_password = ?";
 
-        try (Connection conn = Queries.getConnection(Main.dbName); PreparedStatement pst = Queries.prepareQueryWithParameters(conn, query, user_name, user_password); ResultSet rs = pst.executeQuery()) {
+        try (Connection conn = Queries.getConnection(Main.dbName); PreparedStatement pst = Queries.prepareQueryWithParameters(conn, query, employee_name, employee_password); ResultSet rs = pst.executeQuery()) {
             if (rs.next()) {
                 // Login success
-                int userID = rs.getInt("ID");
+                int userID = rs.getInt("employee_ID");
                 main.setUserSessionID(userID);
                 main.updateUserSession();
 

@@ -1,6 +1,18 @@
 package project.page;
 
 import java.awt.Color;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.time.LocalDate;
+import javax.swing.JOptionPane;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
+import project.Main;
+import static project.Main.tbName_Product;
+import project.Queries;
 import project.WindowUtils;
 
 /**
@@ -15,6 +27,65 @@ public class PageDeliver extends javax.swing.JPanel {
     public PageDeliver() {
         initComponents();
         WindowUtils.setTransparentFrame(fieldName);
+        WindowUtils.setTransparentFrame(fieldPrice);
+        WindowUtils.setTransparentFrame(fieldQuantity);
+        WindowUtils.setTransparentFrame(fieldTotalPrice);
+        WindowUtils.setTransparentFrame(fieldDOD);
+        WindowUtils.setTransparentFrame(fieldDOE);
+
+        fieldName.getDocument().addDocumentListener(new PageDeliver.FieldChangeListener());
+        fieldPrice.getDocument().addDocumentListener(new PageDeliver.FieldChangeListener());
+        fieldQuantity.getDocument().addDocumentListener(new PageDeliver.FieldChangeListener());
+    }
+
+    private class FieldChangeListener implements DocumentListener, ActionListener {
+
+        @Override
+        public void insertUpdate(DocumentEvent e) {
+            checkFields();
+        }
+
+        @Override
+        public void removeUpdate(DocumentEvent e) {
+            checkFields();
+        }
+
+        @Override
+        public void changedUpdate(DocumentEvent e) {
+            checkFields();
+        }
+
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            checkFields();
+        }
+
+        private void checkFields() {
+            String product_name = fieldName.getText().trim();
+            String product_price = fieldPrice.getText().trim();
+            String product_quantity = fieldQuantity.getText().trim();
+
+            boolean isValid = !product_name.isEmpty()
+                    && !product_name.equals("Enter Product Name")
+                    && !product_price.isEmpty()
+                    && !product_price.equals("Enter Price")
+                    && !product_quantity.isEmpty()
+                    && !product_quantity.equals("Enter Quantity");
+            btnAddProduct.setEnabled(isValid);
+        }
+    }
+
+    private void calculateTotalPrice() {
+        if (!fieldPrice.getText().equals("Enter Price") && !fieldQuantity.getText().equals("Enter Quantity")) {
+            try {
+                float price = Float.parseFloat(fieldPrice.getText());
+                float quantity = Float.parseFloat(fieldQuantity.getText());
+                float total = price * quantity;
+                fieldTotalPrice.setText(String.valueOf(total));
+            } catch (NumberFormatException e) {
+                fieldTotalPrice.setText("Total Price");
+            }
+        }
     }
 
     /**
@@ -26,22 +97,47 @@ public class PageDeliver extends javax.swing.JPanel {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
+        dateDOD = new project.date.DateChooser();
+        dateDOE = new project.date.DateChooser();
         panelBody = new project.component.ShadowPanel();
         panelMain = new javax.swing.JPanel();
-        labelCategory = new javax.swing.JLabel();
         comboCategory = new javax.swing.JComboBox<>();
         separatorCategory = new javax.swing.JSeparator();
         labelName = new javax.swing.JLabel();
         fieldName = new javax.swing.JTextField();
         separatorName = new javax.swing.JSeparator();
+        labelCategory = new javax.swing.JLabel();
         panelPriceQuantity = new javax.swing.JPanel();
-        fieldName1 = new javax.swing.JTextField();
-        fieldName2 = new javax.swing.JTextField();
-        labelName2 = new javax.swing.JLabel();
-        separatorName2 = new javax.swing.JSeparator();
-        labelName1 = new javax.swing.JLabel();
-        separatorName1 = new javax.swing.JSeparator();
-        jSpinner1 = new javax.swing.JSpinner();
+        labelPrice = new javax.swing.JLabel();
+        fieldPrice = new javax.swing.JTextField();
+        separatorPrice = new javax.swing.JSeparator();
+        labelQuantity = new javax.swing.JLabel();
+        fieldQuantity = new javax.swing.JTextField();
+        separatorQuantity = new javax.swing.JSeparator();
+        labelTotalPrice = new javax.swing.JLabel();
+        fieldTotalPrice = new javax.swing.JTextField();
+        separatorTotalPrice = new javax.swing.JSeparator();
+        labelTotalPriceUOM = new javax.swing.JLabel();
+        comboUOM = new javax.swing.JComboBox<>();
+        separatorPriceUOM = new javax.swing.JSeparator();
+        panelDate = new javax.swing.JPanel();
+        labelDOD = new javax.swing.JLabel();
+        fieldDOD = new javax.swing.JTextField();
+        separatorDOD = new javax.swing.JSeparator();
+        labelDOE = new javax.swing.JLabel();
+        fieldDOE = new javax.swing.JTextField();
+        separatorDOE = new javax.swing.JSeparator();
+        btnDOD = new javax.swing.JButton();
+        btnDOE = new javax.swing.JButton();
+        btnAddProduct = new javax.swing.JButton();
+        scrollProduct = new javax.swing.JScrollPane();
+        tableProduct = new project.swing.Table();
+
+        dateDOD.setDateFormat("yyyy-MM-dd");
+        dateDOD.setTextRefernce(fieldDOD);
+
+        dateDOE.setDateFormat("yyyy-MM-dd");
+        dateDOE.setTextRefernce(fieldDOE);
 
         setMaximumSize(new java.awt.Dimension(915, 544));
         setMinimumSize(new java.awt.Dimension(915, 544));
@@ -52,9 +148,6 @@ public class PageDeliver extends javax.swing.JPanel {
 
         panelMain.setOpaque(false);
 
-        labelCategory.setFont(new java.awt.Font("Yu Gothic UI Semibold", 0, 14)); // NOI18N
-        labelCategory.setText("Category");
-
         comboCategory.setFont(new java.awt.Font("Yu Gothic UI Semibold", 0, 12)); // NOI18N
         comboCategory.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "BEVERAGES", "BREADS AND BAKERY", "CANNED AND JARRED", "DAIRY", "DRY GOODS AND BAKING", "FRESH PRODUCE", "FROZEN", "HEALTH AND WELLNESS", "HOUSEHOLD", "MEAT", "PERSONAL CARE", "PET CARE", "SNACKS" }));
 
@@ -63,7 +156,7 @@ public class PageDeliver extends javax.swing.JPanel {
 
         fieldName.setFont(new java.awt.Font("Yu Gothic UI Semibold", 0, 12)); // NOI18N
         fieldName.setForeground(new java.awt.Color(153, 153, 153));
-        fieldName.setText("Enter Username");
+        fieldName.setText("Enter Product Name");
         fieldName.setBorder(null);
         fieldName.setCursor(new java.awt.Cursor(java.awt.Cursor.TEXT_CURSOR));
         fieldName.addFocusListener(new java.awt.event.FocusAdapter() {
@@ -75,147 +168,300 @@ public class PageDeliver extends javax.swing.JPanel {
             }
         });
 
+        labelCategory.setFont(new java.awt.Font("Yu Gothic UI Semibold", 0, 14)); // NOI18N
+        labelCategory.setText("Category");
+
         panelPriceQuantity.setOpaque(false);
 
-        fieldName1.setFont(new java.awt.Font("Yu Gothic UI Semibold", 0, 12)); // NOI18N
-        fieldName1.setForeground(new java.awt.Color(153, 153, 153));
-        fieldName1.setText("Enter Username");
-        fieldName1.setBorder(null);
-        fieldName1.setCursor(new java.awt.Cursor(java.awt.Cursor.TEXT_CURSOR));
-        fieldName1.addFocusListener(new java.awt.event.FocusAdapter() {
+        labelPrice.setFont(new java.awt.Font("Yu Gothic UI Semibold", 0, 14)); // NOI18N
+        labelPrice.setText("Price");
+
+        fieldPrice.setFont(new java.awt.Font("Yu Gothic UI Semibold", 0, 12)); // NOI18N
+        fieldPrice.setForeground(new java.awt.Color(153, 153, 153));
+        fieldPrice.setText("Enter Price");
+        fieldPrice.setBorder(null);
+        fieldPrice.setCursor(new java.awt.Cursor(java.awt.Cursor.TEXT_CURSOR));
+        fieldPrice.addFocusListener(new java.awt.event.FocusAdapter() {
             public void focusGained(java.awt.event.FocusEvent evt) {
-                fieldName1FocusGained(evt);
+                fieldPriceFocusGained(evt);
             }
             public void focusLost(java.awt.event.FocusEvent evt) {
-                fieldName1FocusLost(evt);
+                fieldPriceFocusLost(evt);
+            }
+        });
+        fieldPrice.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyReleased(java.awt.event.KeyEvent evt) {
+                fieldPriceKeyReleased(evt);
+            }
+            public void keyTyped(java.awt.event.KeyEvent evt) {
+                fieldPriceKeyTyped(evt);
             }
         });
 
-        fieldName2.setFont(new java.awt.Font("Yu Gothic UI Semibold", 0, 12)); // NOI18N
-        fieldName2.setForeground(new java.awt.Color(153, 153, 153));
-        fieldName2.setText("Enter Username");
-        fieldName2.setBorder(null);
-        fieldName2.setCursor(new java.awt.Cursor(java.awt.Cursor.TEXT_CURSOR));
-        fieldName2.addFocusListener(new java.awt.event.FocusAdapter() {
+        labelQuantity.setFont(new java.awt.Font("Yu Gothic UI Semibold", 0, 14)); // NOI18N
+        labelQuantity.setText("Quantity");
+
+        fieldQuantity.setFont(new java.awt.Font("Yu Gothic UI Semibold", 0, 12)); // NOI18N
+        fieldQuantity.setForeground(new java.awt.Color(153, 153, 153));
+        fieldQuantity.setText("Enter Quantity");
+        fieldQuantity.setBorder(null);
+        fieldQuantity.setCursor(new java.awt.Cursor(java.awt.Cursor.TEXT_CURSOR));
+        fieldQuantity.addFocusListener(new java.awt.event.FocusAdapter() {
             public void focusGained(java.awt.event.FocusEvent evt) {
-                fieldName2FocusGained(evt);
+                fieldQuantityFocusGained(evt);
             }
             public void focusLost(java.awt.event.FocusEvent evt) {
-                fieldName2FocusLost(evt);
+                fieldQuantityFocusLost(evt);
+            }
+        });
+        fieldQuantity.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyReleased(java.awt.event.KeyEvent evt) {
+                fieldQuantityKeyReleased(evt);
+            }
+            public void keyTyped(java.awt.event.KeyEvent evt) {
+                fieldQuantityKeyTyped(evt);
             }
         });
 
-        labelName2.setFont(new java.awt.Font("Yu Gothic UI Semibold", 0, 14)); // NOI18N
-        labelName2.setText("Quantity");
+        labelTotalPrice.setFont(new java.awt.Font("Yu Gothic UI Semibold", 0, 14)); // NOI18N
+        labelTotalPrice.setText("Total Price");
 
-        labelName1.setFont(new java.awt.Font("Yu Gothic UI Semibold", 0, 14)); // NOI18N
-        labelName1.setText("Price");
+        fieldTotalPrice.setEditable(false);
+        fieldTotalPrice.setFont(new java.awt.Font("Yu Gothic UI Semibold", 0, 12)); // NOI18N
+        fieldTotalPrice.setForeground(new java.awt.Color(153, 153, 153));
+        fieldTotalPrice.setText("Total Price");
+        fieldTotalPrice.setBorder(null);
+        fieldTotalPrice.setCursor(new java.awt.Cursor(java.awt.Cursor.TEXT_CURSOR));
+        fieldTotalPrice.setFocusable(false);
+
+        labelTotalPriceUOM.setFont(new java.awt.Font("Yu Gothic UI Semibold", 0, 14)); // NOI18N
+        labelTotalPriceUOM.setText("Unit of Measure");
+
+        comboUOM.setFont(new java.awt.Font("Yu Gothic UI Semibold", 0, 12)); // NOI18N
+        comboUOM.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "PIECES", "LITERS", "KILOGRAMS" }));
 
         javax.swing.GroupLayout panelPriceQuantityLayout = new javax.swing.GroupLayout(panelPriceQuantity);
         panelPriceQuantity.setLayout(panelPriceQuantityLayout);
         panelPriceQuantityLayout.setHorizontalGroup(
             panelPriceQuantityLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, panelPriceQuantityLayout.createSequentialGroup()
-                .addGroup(panelPriceQuantityLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                    .addGroup(panelPriceQuantityLayout.createSequentialGroup()
-                        .addGap(0, 0, Short.MAX_VALUE)
-                        .addComponent(separatorName1, javax.swing.GroupLayout.PREFERRED_SIZE, 117, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addGroup(panelPriceQuantityLayout.createSequentialGroup()
-                        .addComponent(labelName1, javax.swing.GroupLayout.DEFAULT_SIZE, 111, Short.MAX_VALUE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(fieldName1, javax.swing.GroupLayout.PREFERRED_SIZE, 117, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+            .addGroup(panelPriceQuantityLayout.createSequentialGroup()
                 .addGroup(panelPriceQuantityLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, panelPriceQuantityLayout.createSequentialGroup()
-                        .addComponent(labelName2, javax.swing.GroupLayout.PREFERRED_SIZE, 111, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(fieldName2, javax.swing.GroupLayout.DEFAULT_SIZE, 117, Short.MAX_VALUE))
-                    .addComponent(separatorName2, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 117, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                    .addGroup(panelPriceQuantityLayout.createSequentialGroup()
+                        .addComponent(labelPrice, javax.swing.GroupLayout.PREFERRED_SIZE, 117, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(35, 35, 35)
+                        .addComponent(fieldPrice, javax.swing.GroupLayout.PREFERRED_SIZE, 155, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(13, 13, 13)
+                        .addComponent(labelQuantity, javax.swing.GroupLayout.PREFERRED_SIZE, 117, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(45, 45, 45)
+                        .addComponent(fieldQuantity, javax.swing.GroupLayout.PREFERRED_SIZE, 155, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(panelPriceQuantityLayout.createSequentialGroup()
+                        .addGap(150, 150, 150)
+                        .addComponent(separatorTotalPrice, javax.swing.GroupLayout.PREFERRED_SIZE, 155, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(175, 175, 175)
+                        .addComponent(separatorPriceUOM, javax.swing.GroupLayout.PREFERRED_SIZE, 155, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(panelPriceQuantityLayout.createSequentialGroup()
+                        .addGroup(panelPriceQuantityLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(panelPriceQuantityLayout.createSequentialGroup()
+                                .addGap(152, 152, 152)
+                                .addComponent(separatorPrice, javax.swing.GroupLayout.PREFERRED_SIZE, 155, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addGroup(panelPriceQuantityLayout.createSequentialGroup()
+                                .addComponent(labelTotalPrice, javax.swing.GroupLayout.PREFERRED_SIZE, 117, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addGap(33, 33, 33)
+                                .addComponent(fieldTotalPrice, javax.swing.GroupLayout.PREFERRED_SIZE, 155, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addGap(12, 12, 12)
+                                .addComponent(labelTotalPriceUOM, javax.swing.GroupLayout.PREFERRED_SIZE, 130, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                        .addGap(35, 35, 35)
+                        .addGroup(panelPriceQuantityLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                            .addComponent(comboUOM, 0, 155, Short.MAX_VALUE)
+                            .addComponent(separatorQuantity))))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         panelPriceQuantityLayout.setVerticalGroup(
             panelPriceQuantityLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(panelPriceQuantityLayout.createSequentialGroup()
-                .addGroup(panelPriceQuantityLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(labelName2, javax.swing.GroupLayout.PREFERRED_SIZE, 22, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(fieldName2, javax.swing.GroupLayout.PREFERRED_SIZE, 22, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(fieldName1, javax.swing.GroupLayout.PREFERRED_SIZE, 22, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(labelName1, javax.swing.GroupLayout.PREFERRED_SIZE, 22, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(panelPriceQuantityLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(separatorName2, javax.swing.GroupLayout.PREFERRED_SIZE, 10, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(separatorName1, javax.swing.GroupLayout.PREFERRED_SIZE, 10, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(0, 0, Short.MAX_VALUE))
+                    .addComponent(labelPrice, javax.swing.GroupLayout.PREFERRED_SIZE, 22, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(labelQuantity, javax.swing.GroupLayout.PREFERRED_SIZE, 22, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addGroup(panelPriceQuantityLayout.createSequentialGroup()
+                        .addGap(1, 1, 1)
+                        .addGroup(panelPriceQuantityLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(fieldPrice, javax.swing.GroupLayout.PREFERRED_SIZE, 22, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(fieldQuantity, javax.swing.GroupLayout.PREFERRED_SIZE, 22, javax.swing.GroupLayout.PREFERRED_SIZE))))
+                .addGap(6, 6, 6)
+                .addGroup(panelPriceQuantityLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(separatorPrice, javax.swing.GroupLayout.PREFERRED_SIZE, 10, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(separatorQuantity, javax.swing.GroupLayout.PREFERRED_SIZE, 10, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(1, 1, 1)
+                .addGroup(panelPriceQuantityLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(labelTotalPrice, javax.swing.GroupLayout.PREFERRED_SIZE, 22, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(fieldTotalPrice, javax.swing.GroupLayout.PREFERRED_SIZE, 22, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addGroup(panelPriceQuantityLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                        .addComponent(labelTotalPriceUOM, javax.swing.GroupLayout.PREFERRED_SIZE, 22, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(comboUOM, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                .addGap(7, 7, 7)
+                .addGroup(panelPriceQuantityLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(separatorTotalPrice, javax.swing.GroupLayout.PREFERRED_SIZE, 10, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(separatorPriceUOM, javax.swing.GroupLayout.PREFERRED_SIZE, 10, javax.swing.GroupLayout.PREFERRED_SIZE)))
         );
+
+        panelDate.setOpaque(false);
+        panelDate.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
+
+        labelDOD.setFont(new java.awt.Font("Yu Gothic UI Semibold", 0, 14)); // NOI18N
+        labelDOD.setText("Date of Delivery");
+        panelDate.add(labelDOD, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 0, 119, 22));
+
+        fieldDOD.setFont(new java.awt.Font("Yu Gothic UI Semibold", 0, 12)); // NOI18N
+        fieldDOD.setBorder(null);
+        fieldDOD.setCursor(new java.awt.Cursor(java.awt.Cursor.TEXT_CURSOR));
+        fieldDOD.setFocusable(false);
+        fieldDOD.addFocusListener(new java.awt.event.FocusAdapter() {
+            public void focusGained(java.awt.event.FocusEvent evt) {
+                fieldDODFocusGained(evt);
+            }
+            public void focusLost(java.awt.event.FocusEvent evt) {
+                fieldDODFocusLost(evt);
+            }
+        });
+        panelDate.add(fieldDOD, new org.netbeans.lib.awtextra.AbsoluteConstraints(152, 1, 110, 22));
+        panelDate.add(separatorDOD, new org.netbeans.lib.awtextra.AbsoluteConstraints(152, 30, 158, 10));
+
+        labelDOE.setFont(new java.awt.Font("Yu Gothic UI Semibold", 0, 14)); // NOI18N
+        labelDOE.setText("Date of Expiry");
+        panelDate.add(labelDOE, new org.netbeans.lib.awtextra.AbsoluteConstraints(320, 0, 117, 22));
+
+        fieldDOE.setFont(new java.awt.Font("Yu Gothic UI Semibold", 0, 12)); // NOI18N
+        fieldDOE.setBorder(null);
+        fieldDOE.setCursor(new java.awt.Cursor(java.awt.Cursor.TEXT_CURSOR));
+        fieldDOE.addFocusListener(new java.awt.event.FocusAdapter() {
+            public void focusGained(java.awt.event.FocusEvent evt) {
+                fieldDOEFocusGained(evt);
+            }
+            public void focusLost(java.awt.event.FocusEvent evt) {
+                fieldDOEFocusLost(evt);
+            }
+        });
+        panelDate.add(fieldDOE, new org.netbeans.lib.awtextra.AbsoluteConstraints(482, 1, 110, 22));
+        panelDate.add(separatorDOE, new org.netbeans.lib.awtextra.AbsoluteConstraints(482, 30, 154, 10));
+
+        btnDOD.setText("...");
+        btnDOD.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnDODActionPerformed(evt);
+            }
+        });
+        panelDate.add(btnDOD, new org.netbeans.lib.awtextra.AbsoluteConstraints(270, 0, -1, -1));
+
+        btnDOE.setText("...");
+        btnDOE.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnDOEActionPerformed(evt);
+            }
+        });
+        panelDate.add(btnDOE, new org.netbeans.lib.awtextra.AbsoluteConstraints(600, 0, -1, -1));
 
         javax.swing.GroupLayout panelMainLayout = new javax.swing.GroupLayout(panelMain);
         panelMain.setLayout(panelMainLayout);
         panelMainLayout.setHorizontalGroup(
             panelMainLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, panelMainLayout.createSequentialGroup()
-                .addContainerGap()
-                .addGroup(panelMainLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+            .addGroup(panelMainLayout.createSequentialGroup()
+                .addGap(6, 6, 6)
+                .addGroup(panelMainLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(panelPriceQuantity, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(panelDate, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addGroup(panelMainLayout.createSequentialGroup()
-                        .addGroup(panelMainLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                            .addComponent(labelCategory, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(labelName, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addGroup(panelMainLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                            .addComponent(comboCategory, 0, 234, Short.MAX_VALUE)
-                            .addComponent(separatorName)
-                            .addComponent(fieldName)
-                            .addComponent(separatorCategory))))
-                .addGap(400, 400, 400))
+                        .addGroup(panelMainLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(panelMainLayout.createSequentialGroup()
+                                .addComponent(labelName, javax.swing.GroupLayout.PREFERRED_SIZE, 263, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addGap(57, 57, 57)
+                                .addGroup(panelMainLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addComponent(separatorName)
+                                    .addComponent(fieldName)))
+                            .addGroup(panelMainLayout.createSequentialGroup()
+                                .addComponent(labelCategory, javax.swing.GroupLayout.PREFERRED_SIZE, 314, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addGroup(panelMainLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                                    .addComponent(separatorCategory)
+                                    .addComponent(comboCategory, 0, 316, Short.MAX_VALUE))))
+                        .addContainerGap())))
         );
         panelMainLayout.setVerticalGroup(
             panelMainLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(panelMainLayout.createSequentialGroup()
-                .addContainerGap()
-                .addGroup(panelMainLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                    .addComponent(labelCategory, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(comboCategory))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGap(6, 6, 6)
+                .addGroup(panelMainLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(labelCategory, javax.swing.GroupLayout.PREFERRED_SIZE, 22, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(comboCategory, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(5, 5, 5)
                 .addComponent(separatorCategory, javax.swing.GroupLayout.PREFERRED_SIZE, 10, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(panelMainLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                    .addComponent(labelName, javax.swing.GroupLayout.DEFAULT_SIZE, 22, Short.MAX_VALUE)
-                    .addComponent(fieldName))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGap(6, 6, 6)
+                .addGroup(panelMainLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(labelName, javax.swing.GroupLayout.PREFERRED_SIZE, 22, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(fieldName, javax.swing.GroupLayout.PREFERRED_SIZE, 22, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(6, 6, 6)
                 .addComponent(separatorName, javax.swing.GroupLayout.PREFERRED_SIZE, 10, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(panelPriceQuantity, javax.swing.GroupLayout.PREFERRED_SIZE, 38, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap())
+                .addComponent(panelPriceQuantity, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(panelDate, javax.swing.GroupLayout.PREFERRED_SIZE, 38, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(29, Short.MAX_VALUE))
         );
+
+        btnAddProduct.setText("Add Product");
+        btnAddProduct.setEnabled(false);
+        btnAddProduct.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnAddProductActionPerformed(evt);
+            }
+        });
+
+        scrollProduct.setBorder(null);
+
+        tableProduct.setModel(new javax.swing.table.DefaultTableModel(
+            new Object [][] {
+                {null, null, null, null, null, null, null, null, null, null, null},
+                {null, null, null, null, null, null, null, null, null, null, null},
+                {null, null, null, null, null, null, null, null, null, null, null},
+                {null, null, null, null, null, null, null, null, null, null, null}
+            },
+            new String [] {
+                "ID", "Category", "Name", "Price", "Quantity", "Total Price", "Unit of Measure", "Delivery Date", "Expiry Date", "Image", "Employee"
+            }
+        ));
+        scrollProduct.setViewportView(tableProduct);
 
         javax.swing.GroupLayout panelBodyLayout = new javax.swing.GroupLayout(panelBody);
         panelBody.setLayout(panelBodyLayout);
         panelBodyLayout.setHorizontalGroup(
             panelBodyLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(panelBodyLayout.createSequentialGroup()
+                .addGap(16, 16, 16)
                 .addGroup(panelBodyLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(panelBodyLayout.createSequentialGroup()
-                        .addGap(14, 14, 14)
-                        .addComponent(panelMain, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addGroup(panelBodyLayout.createSequentialGroup()
-                        .addGap(413, 413, 413)
-                        .addComponent(jSpinner1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                .addContainerGap(21, Short.MAX_VALUE))
+                    .addComponent(btnAddProduct, javax.swing.GroupLayout.PREFERRED_SIZE, 180, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(panelMain, javax.swing.GroupLayout.PREFERRED_SIZE, 245, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(scrollProduct, javax.swing.GroupLayout.PREFERRED_SIZE, 630, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(18, Short.MAX_VALUE))
         );
         panelBodyLayout.setVerticalGroup(
             panelBodyLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(panelBodyLayout.createSequentialGroup()
-                .addGap(15, 15, 15)
-                .addComponent(panelMain, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(129, 129, 129)
-                .addComponent(jSpinner1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(240, Short.MAX_VALUE))
+                .addGap(16, 16, 16)
+                .addGroup(panelBodyLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(scrollProduct, javax.swing.GroupLayout.Alignment.TRAILING)
+                    .addGroup(panelBodyLayout.createSequentialGroup()
+                        .addComponent(panelMain, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(btnAddProduct, javax.swing.GroupLayout.PREFERRED_SIZE, 64, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(0, 205, Short.MAX_VALUE)))
+                .addContainerGap())
         );
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(panelBody, javax.swing.GroupLayout.DEFAULT_SIZE, 921, Short.MAX_VALUE)
+            .addComponent(panelBody, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -224,7 +470,7 @@ public class PageDeliver extends javax.swing.JPanel {
     }// </editor-fold>//GEN-END:initComponents
 
     private void fieldNameFocusGained(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_fieldNameFocusGained
-        if (fieldName.getText().equals("Enter Username")) {
+        if (fieldName.getText().equals("Enter Product Name")) {
             fieldName.setText("");
             fieldName.setForeground(new Color(0, 0, 0));
         }
@@ -237,39 +483,153 @@ public class PageDeliver extends javax.swing.JPanel {
         }
     }//GEN-LAST:event_fieldNameFocusLost
 
-    private void fieldName1FocusGained(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_fieldName1FocusGained
-        // TODO add your handling code here:
-    }//GEN-LAST:event_fieldName1FocusGained
+    private void fieldPriceFocusGained(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_fieldPriceFocusGained
+        if (fieldPrice.getText().equals("Enter Price")) {
+            fieldPrice.setText("");
+            fieldPrice.setForeground(new Color(0, 0, 0));
+        }
+    }//GEN-LAST:event_fieldPriceFocusGained
 
-    private void fieldName1FocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_fieldName1FocusLost
-        // TODO add your handling code here:
-    }//GEN-LAST:event_fieldName1FocusLost
+    private void fieldPriceFocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_fieldPriceFocusLost
+        if (fieldPrice.getText().equals("")) {
+            fieldPrice.setText("Enter Price");
+            fieldPrice.setForeground(new Color(153, 153, 153));
+        }
+    }//GEN-LAST:event_fieldPriceFocusLost
 
-    private void fieldName2FocusGained(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_fieldName2FocusGained
-        // TODO add your handling code here:
-    }//GEN-LAST:event_fieldName2FocusGained
+    private void fieldQuantityFocusGained(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_fieldQuantityFocusGained
+        if (fieldQuantity.getText().equals("Enter Quantity")) {
+            fieldQuantity.setText("");
+            fieldQuantity.setForeground(new Color(0, 0, 0));
+        }
+    }//GEN-LAST:event_fieldQuantityFocusGained
 
-    private void fieldName2FocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_fieldName2FocusLost
+    private void fieldQuantityFocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_fieldQuantityFocusLost
+        if (fieldQuantity.getText().equals("")) {
+            fieldQuantity.setText("Enter Quantity");
+            fieldQuantity.setForeground(new Color(153, 153, 153));
+        }
+    }//GEN-LAST:event_fieldQuantityFocusLost
+
+    private void fieldDODFocusGained(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_fieldDODFocusGained
         // TODO add your handling code here:
-    }//GEN-LAST:event_fieldName2FocusLost
+    }//GEN-LAST:event_fieldDODFocusGained
+
+    private void fieldDODFocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_fieldDODFocusLost
+        // TODO add your handling code here:
+    }//GEN-LAST:event_fieldDODFocusLost
+
+    private void fieldDOEFocusGained(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_fieldDOEFocusGained
+        // TODO add your handling code here:
+    }//GEN-LAST:event_fieldDOEFocusGained
+
+    private void fieldDOEFocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_fieldDOEFocusLost
+        // TODO add your handling code here:
+    }//GEN-LAST:event_fieldDOEFocusLost
+
+    private void btnDODActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnDODActionPerformed
+        dateDOD.showPopup();
+    }//GEN-LAST:event_btnDODActionPerformed
+
+    private void btnDOEActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnDOEActionPerformed
+        dateDOE.showPopup();
+    }//GEN-LAST:event_btnDOEActionPerformed
+
+    private void fieldPriceKeyTyped(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_fieldPriceKeyTyped
+        char c = evt.getKeyChar();
+
+        if (!Character.isDigit(c) && c != '.' && c != KeyEvent.VK_BACK_SPACE) {
+            evt.consume();
+        }
+    }//GEN-LAST:event_fieldPriceKeyTyped
+
+    private void fieldPriceKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_fieldPriceKeyReleased
+        calculateTotalPrice();
+    }//GEN-LAST:event_fieldPriceKeyReleased
+
+    private void fieldQuantityKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_fieldQuantityKeyReleased
+        calculateTotalPrice();
+    }//GEN-LAST:event_fieldQuantityKeyReleased
+
+    private void fieldQuantityKeyTyped(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_fieldQuantityKeyTyped
+        char c = evt.getKeyChar();
+
+        if (!Character.isDigit(c) && c != '.' && c != KeyEvent.VK_BACK_SPACE) {
+            evt.consume();
+        }
+    }//GEN-LAST:event_fieldQuantityKeyTyped
+
+    private void btnAddProductActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnAddProductActionPerformed
+        String product_category = comboCategory.getSelectedItem().toString();
+        String product_name = fieldName.getText().toUpperCase();
+        String product_price = fieldPrice.getText();
+        String product_quantity = fieldQuantity.getText();
+        String product_uom = comboUOM.getSelectedItem().toString();
+        String product_deliveryDate = fieldDOD.getText();
+        String product_expirationDate = fieldDOE.getText();
+
+        String employee_id = String.valueOf(project.Main.getUserSessionID());
+        
+        LocalDate date1 = LocalDate.parse(product_deliveryDate);
+        LocalDate date2 = LocalDate.parse(product_expirationDate);
+        boolean isValidExpiration = false;
+
+        if (date1.isBefore(date2)) {
+            isValidExpiration = true;
+        }
+        
+        if (isValidExpiration) {
+            String query = "INSERT INTO " + tbName_Product + " (product_category, product_name, product_price, product_quantity, product_uom, product_deliveryDate, product_expirationDate, product_image, employee_id)\n"
+                    + "VALUES (?, ?, ?, ?, ?, ?, ?, 'Image', ?)";
+
+            try (Connection conn = Queries.getConnection(Main.dbName);) {
+                Queries.executeUpdate(conn, query, product_category, product_name, product_price, product_quantity, product_uom, product_deliveryDate, product_expirationDate, employee_id);
+                JOptionPane.showMessageDialog(this, "Product Added!", "Success", JOptionPane.INFORMATION_MESSAGE);
+            } catch (SQLException e) {
+                JOptionPane.showMessageDialog(this, "Database error: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+                e.printStackTrace(System.out);
+            }
+        } else {
+            JOptionPane.showMessageDialog(this, "Expiration Date must not be the same as or before the Delivery Date!", "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }//GEN-LAST:event_btnAddProductActionPerformed
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton btnAddProduct;
+    private javax.swing.JButton btnDOD;
+    private javax.swing.JButton btnDOE;
     private javax.swing.JComboBox<String> comboCategory;
+    private javax.swing.JComboBox<String> comboUOM;
+    private project.date.DateChooser dateDOD;
+    private project.date.DateChooser dateDOE;
+    private javax.swing.JTextField fieldDOD;
+    private javax.swing.JTextField fieldDOE;
     private javax.swing.JTextField fieldName;
-    private javax.swing.JTextField fieldName1;
-    private javax.swing.JTextField fieldName2;
-    private javax.swing.JSpinner jSpinner1;
+    private javax.swing.JTextField fieldPrice;
+    private javax.swing.JTextField fieldQuantity;
+    private javax.swing.JTextField fieldTotalPrice;
     private javax.swing.JLabel labelCategory;
+    private javax.swing.JLabel labelDOD;
+    private javax.swing.JLabel labelDOE;
     private javax.swing.JLabel labelName;
-    private javax.swing.JLabel labelName1;
-    private javax.swing.JLabel labelName2;
+    private javax.swing.JLabel labelPrice;
+    private javax.swing.JLabel labelQuantity;
+    private javax.swing.JLabel labelTotalPrice;
+    private javax.swing.JLabel labelTotalPriceUOM;
     private project.component.ShadowPanel panelBody;
+    private javax.swing.JPanel panelDate;
     private javax.swing.JPanel panelMain;
     private javax.swing.JPanel panelPriceQuantity;
+    private javax.swing.JScrollPane scrollProduct;
     private javax.swing.JSeparator separatorCategory;
+    private javax.swing.JSeparator separatorDOD;
+    private javax.swing.JSeparator separatorDOE;
     private javax.swing.JSeparator separatorName;
-    private javax.swing.JSeparator separatorName1;
-    private javax.swing.JSeparator separatorName2;
+    private javax.swing.JSeparator separatorPrice;
+    private javax.swing.JSeparator separatorPriceUOM;
+    private javax.swing.JSeparator separatorQuantity;
+    private javax.swing.JSeparator separatorTotalPrice;
+    private project.swing.Table tableProduct;
     // End of variables declaration//GEN-END:variables
 }

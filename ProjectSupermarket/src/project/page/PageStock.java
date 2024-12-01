@@ -5,48 +5,64 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import javax.swing.JOptionPane;
+import javax.swing.JTable;
 import javax.swing.table.DefaultTableModel;
 import project.Main;
 import static project.Main.tbName_Product;
 import project.Queries;
+import project.swing.ScrollbarCustom;
 
 /**
  *
  * @author Dric
  */
 public class PageStock extends javax.swing.JPanel {
-    
+
 //    public static enum ProductCategory{DAIRY, BAKING}
-    
     /**
      * Creates new form FormBody
      */
     public PageStock() {
         initComponents();
+//        scrollProduct.setVerticalScrollBar(new ScrollbarCustom());
+//        scrollProduct.setHorizontalScrollBar(new ScrollbarCustom());
 
+        tableProduct.getColumnModel().getColumn(0).setPreferredWidth(40);
+        tableProduct.getColumnModel().getColumn(1).setPreferredWidth(175);
+        tableProduct.getColumnModel().getColumn(2).setPreferredWidth(200);
+        tableProduct.getColumnModel().getColumn(3).setPreferredWidth(80);
+        tableProduct.getColumnModel().getColumn(4).setPreferredWidth(80);
+        tableProduct.getColumnModel().getColumn(6).setPreferredWidth(100);
+        tableProduct.getColumnModel().getColumn(7).setPreferredWidth(100);
+        tableProduct.getColumnModel().getColumn(8).setPreferredWidth(100);
+        tableProduct.getColumnModel().getColumn(9).setPreferredWidth(100);
+        tableProduct.getColumnModel().getColumn(10).setPreferredWidth(150);
+        tableProduct.setAutoResizeMode(JTable.AUTO_RESIZE_OFF );
+        refreshTableStock();
+    }
+
+    public final void refreshTableStock() {
         String query = "SELECT * FROM " + tbName_Product;
 
         try (Connection conn = Queries.getConnection(Main.dbName); PreparedStatement pst = Queries.prepareQuery(conn, query); ResultSet rs = pst.executeQuery()) {
             DefaultTableModel model = (DefaultTableModel) tableProduct.getModel();
             model.setRowCount(0);
             while (rs.next()) {
-                // Login success
                 try {
-                    // Assuming the ResultSet rs is already populated with data from the database
-                    // Get the data from the ResultSet
-                    String productID = rs.getString("product_ID"); // For the integer column, use getString()
+                    String productID = rs.getString("product_ID");
                     String category = rs.getString("product_category");
                     String name = rs.getString("product_name");
-                    String price = String.valueOf(rs.getFloat("product_price")); // Convert float to String
-                    String quantity = String.valueOf(rs.getInt("product_quantity")); // Convert int to String
+                    String price = String.valueOf(rs.getFloat("product_price"));
+                    String quantity = String.valueOf(rs.getInt("product_quantity"));
+                    String totalPrice = String.valueOf(rs.getFloat("product_totalPrice"));
                     String uom = rs.getString("product_uom");
-                    String deliveryDate = rs.getString("product_deliveryDate"); // Assume the date is formatted correctly
-                    String expirationDate = rs.getString("product_expirationDate"); // Same as above
-                    String image = "Image"; // For the BLOB, you can store a placeholder or image path
+                    String deliveryDate = rs.getString("product_deliveryDate");
+                    String expirationDate = rs.getString("product_expirationDate");
+                    String image = "Image";
+                    String employeeID = rs.getString("employee_ID");
 
-                    // Add the row to the model
                     model.addRow(new String[]{
-                        productID, category, name, price, quantity, uom, deliveryDate, expirationDate, image
+                        productID, category, name, price, quantity, totalPrice, uom, deliveryDate, expirationDate, image, employeeID
                     });
 
                 } catch (SQLException e) {
@@ -71,7 +87,7 @@ public class PageStock extends javax.swing.JPanel {
 
         panelBody = new project.component.ShadowPanel();
         panelMain = new javax.swing.JPanel();
-        jScrollPane2 = new javax.swing.JScrollPane();
+        scrollProduct = new javax.swing.JScrollPane();
         tableProduct = new project.swing.Table();
 
         setMaximumSize(new java.awt.Dimension(915, 544));
@@ -84,30 +100,30 @@ public class PageStock extends javax.swing.JPanel {
 
         panelMain.setOpaque(false);
 
-        jScrollPane2.setBorder(null);
+        scrollProduct.setBorder(null);
 
         tableProduct.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
-                {null, null, null, null, null, null, null, null, null},
-                {null, null, null, null, null, null, null, null, null},
-                {null, null, null, null, null, null, null, null, null},
-                {null, null, null, null, null, null, null, null, null}
+                {null, null, null, null, null, null, null, null, null, null, null},
+                {null, null, null, null, null, null, null, null, null, null, null},
+                {null, null, null, null, null, null, null, null, null, null, null},
+                {null, null, null, null, null, null, null, null, null, null, null}
             },
             new String [] {
-                "ID", "Category", "Name", "Price", "Quantity", "Unit of Measure", "Delivery Date", "Expiry Date", "Image"
+                "ID", "Category", "Name", "Price", "Quantity", "Total Price", "Unit of Measure", "Delivery Date", "Expiry Date", "Image", "Employee"
             }
         ));
-        jScrollPane2.setViewportView(tableProduct);
+        scrollProduct.setViewportView(tableProduct);
 
         javax.swing.GroupLayout panelMainLayout = new javax.swing.GroupLayout(panelMain);
         panelMain.setLayout(panelMainLayout);
         panelMainLayout.setHorizontalGroup(
             panelMainLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 886, Short.MAX_VALUE)
+            .addComponent(scrollProduct, javax.swing.GroupLayout.DEFAULT_SIZE, 883, Short.MAX_VALUE)
         );
         panelMainLayout.setVerticalGroup(
             panelMainLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 516, Short.MAX_VALUE)
+            .addComponent(scrollProduct, javax.swing.GroupLayout.DEFAULT_SIZE, 513, Short.MAX_VALUE)
         );
 
         javax.swing.GroupLayout panelBodyLayout = new javax.swing.GroupLayout(panelBody);
@@ -117,14 +133,14 @@ public class PageStock extends javax.swing.JPanel {
             .addGroup(panelBodyLayout.createSequentialGroup()
                 .addGap(14, 14, 14)
                 .addComponent(panelMain, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(15, Short.MAX_VALUE))
+                .addGap(14, 14, 14))
         );
         panelBodyLayout.setVerticalGroup(
             panelBodyLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(panelBodyLayout.createSequentialGroup()
                 .addGap(14, 14, 14)
                 .addComponent(panelMain, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(14, Short.MAX_VALUE))
+                .addContainerGap(17, Short.MAX_VALUE))
         );
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
@@ -144,9 +160,9 @@ public class PageStock extends javax.swing.JPanel {
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JScrollPane jScrollPane2;
     private project.component.ShadowPanel panelBody;
     private javax.swing.JPanel panelMain;
+    private javax.swing.JScrollPane scrollProduct;
     private project.swing.Table tableProduct;
     // End of variables declaration//GEN-END:variables
 }

@@ -114,14 +114,14 @@ public class ForgotPassword extends javax.swing.JFrame {
         }
 
         private void checkFields() {
-            String user_name = fieldUsername.getText().trim();
-            String user_password = new String(fieldPassword.getPassword()).trim();
+            String employee_name = fieldUsername.getText().trim();
+            String employee_password = new String(fieldPassword.getPassword()).trim();
             String confirm_Password = new String(fieldConfirmPassword.getPassword()).trim();
 
-            boolean isValid = !user_name.isEmpty()
-                    && !user_name.equals("Enter Username")
-                    && !user_password.isEmpty()
-                    && !user_password.equals("Enter Password")
+            boolean isValid = !employee_name.isEmpty()
+                    && !employee_name.equals("Enter Username")
+                    && !employee_password.isEmpty()
+                    && !employee_password.equals("Enter Password")
                     && !confirm_Password.isEmpty()
                     && !confirm_Password.equals("Enter Password");
             btnLogInProceed.setEnabled(isValid);
@@ -445,21 +445,21 @@ public class ForgotPassword extends javax.swing.JFrame {
     }//GEN-LAST:event_fieldSecurityAnswerFocusLost
 
     private void btnNextActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnNextActionPerformed
-        String user_name = fieldUsername.getText();
+        String employee_name = fieldUsername.getText();
 
-        String query = "SELECT user_name, user_qsec_index, user_qsec_answer FROM " + tbName_Employee + " WHERE user_name = ?";
+        String query = "SELECT employee_name, employee_qsec_index, employee_qsec_answer FROM " + tbName_Employee + " WHERE employee_name = ?";
 
         try (Connection conn = Queries.getConnection(Main.dbName); PreparedStatement pst = conn.prepareStatement(query)) {
-            pst.setString(1, user_name);
+            pst.setString(1, employee_name);
             ResultSet rs = pst.executeQuery();
                     
             if (rs.next()) {
                 validUsername = true;
                 loginFieldsRefresh();
 
-                int user_qsec_index = rs.getInt("user_qsec_index");
-                qsec_answer = rs.getString("user_qsec_answer");
-                comboSecurityQuestion.setSelectedIndex(user_qsec_index);
+                int employee_qsec_index = rs.getInt("employee_qsec_index");
+                qsec_answer = rs.getString("employee_qsec_answer");
+                comboSecurityQuestion.setSelectedIndex(employee_qsec_index);
             } else {
                 JOptionPane.showMessageDialog(this, "No such username exists!", "Error", JOptionPane.ERROR_MESSAGE);
             }
@@ -512,33 +512,33 @@ public class ForgotPassword extends javax.swing.JFrame {
     }//GEN-LAST:event_fieldPasswordFocusLost
 
     private void btnLogInProceedActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnLogInProceedActionPerformed
-        String user_name = fieldUsername.getText().trim();
-        String user_password = new String(fieldPassword.getPassword()).trim();
+        String employee_name = fieldUsername.getText().trim();
+        String employee_password = new String(fieldPassword.getPassword()).trim();
         String confirm_Password = new String(fieldConfirmPassword.getPassword()).trim();
 
-        if (!user_password.equals(confirm_Password)) {
+        if (!employee_password.equals(confirm_Password)) {
             JOptionPane.showMessageDialog(this, "Passwords do not match.", "Error", JOptionPane.ERROR_MESSAGE);
             return;
         }
 
-        String query = "UPDATE " + tbName_Employee + " SET user_password = ? WHERE user_name = ?";
+        String query = "UPDATE " + tbName_Employee + " SET employee_password = ? WHERE employee_name = ?";
 
         try (Connection conn = Queries.getConnection(Main.dbName); PreparedStatement pst = conn.prepareStatement(query)) {
-            pst.setString(1, user_password);
-            pst.setString(2, user_name);
+            pst.setString(1, employee_password);
+            pst.setString(2, employee_name);
             
             int rowsAffected = pst.executeUpdate();
 
             if (rowsAffected > 0) {
                 JOptionPane.showMessageDialog(this, "Password Update Successful! Logging In.", "Success", JOptionPane.INFORMATION_MESSAGE);
 
-                String selectQuery = "SELECT ID FROM " + tbName_Employee + " WHERE user_name = ?";
+                String selectQuery = "SELECT employee_ID FROM " + tbName_Employee + " WHERE employee_name = ?";
                 try (PreparedStatement selectPst = conn.prepareStatement(selectQuery)) {
-                    selectPst.setString(1, user_name);
+                    selectPst.setString(1, employee_name);
                     ResultSet rs = selectPst.executeQuery();
                     
                     if (rs.next()) {
-                        int userID = rs.getInt("ID");
+                        int userID = rs.getInt("employee_ID");
                         main.setUserSessionID(userID);
                         main.updateUserSession();
                         dispose();
