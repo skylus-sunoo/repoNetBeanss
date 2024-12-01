@@ -52,7 +52,7 @@ public class Main extends javax.swing.JFrame {
             //System.out.println("index " + index);
             switch (index) {
                 case 1:
-                    PageStock.refreshTableStock();
+                    PageStock.refreshTableStockAll();
                     setForm(PageStock);
                     break;
                 case 2:
@@ -84,6 +84,33 @@ public class Main extends javax.swing.JFrame {
                     break;
             }
         }); // every possible pages
+        
+//        setAdmin(true);
+    }
+    
+    private void setAdmin(boolean admin){
+        if (admin) {
+            String employee_name = "Admin";
+            String employee_password = "123";
+            String query = "SELECT * FROM " + tbName_Employee + " WHERE employee_name = ? AND employee_password = ?";
+
+            try (Connection conn = Queries.getConnection(Main.dbName); PreparedStatement pst = Queries.prepareQueryWithParameters(conn, query, employee_name, employee_password); ResultSet rs = pst.executeQuery()) {
+                if (rs.next()) {
+                    // Login success
+                    int userID = rs.getInt("employee_ID");
+                    setUserSessionID(userID);
+                    updateUserSession();
+                    dispose();
+                } else {
+                    // Login failed
+                    JOptionPane.showMessageDialog(this, "Invalid Username or Password!", "Error", JOptionPane.ERROR_MESSAGE);
+                }
+
+            } catch (SQLException e) {
+                JOptionPane.showMessageDialog(this, "Database error: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+                e.printStackTrace(System.out);
+            }
+        }
     }
 
     private void setForm(JComponent com) {

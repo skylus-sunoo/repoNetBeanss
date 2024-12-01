@@ -1,16 +1,8 @@
 package project.page;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import javax.swing.JOptionPane;
 import javax.swing.JTable;
-import javax.swing.table.DefaultTableModel;
-import project.Main;
-import static project.Main.tbName_Product;
-import project.Queries;
-import project.swing.ScrollbarCustom;
+import project.TableUtils;
+import project.swing.ImageRenderer;
 
 /**
  *
@@ -18,14 +10,11 @@ import project.swing.ScrollbarCustom;
  */
 public class PageStock extends javax.swing.JPanel {
 
-//    public static enum ProductCategory{DAIRY, BAKING}
     /**
      * Creates new form FormBody
      */
     public PageStock() {
         initComponents();
-//        scrollProduct.setVerticalScrollBar(new ScrollbarCustom());
-//        scrollProduct.setHorizontalScrollBar(new ScrollbarCustom());
 
         tableProduct.getColumnModel().getColumn(0).setPreferredWidth(40);
         tableProduct.getColumnModel().getColumn(1).setPreferredWidth(175);
@@ -35,45 +24,17 @@ public class PageStock extends javax.swing.JPanel {
         tableProduct.getColumnModel().getColumn(6).setPreferredWidth(100);
         tableProduct.getColumnModel().getColumn(7).setPreferredWidth(100);
         tableProduct.getColumnModel().getColumn(8).setPreferredWidth(100);
-        tableProduct.getColumnModel().getColumn(9).setPreferredWidth(100);
+        tableProduct.getColumnModel().getColumn(9).setPreferredWidth(124);
+        tableProduct.getColumnModel().getColumn(9).setCellRenderer(new ImageRenderer());
         tableProduct.getColumnModel().getColumn(10).setPreferredWidth(150);
-        tableProduct.setAutoResizeMode(JTable.AUTO_RESIZE_OFF );
-        refreshTableStock();
+        tableProduct.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
+        TableUtils.refreshTableStockAll(tableProduct);
+
+        tableProduct.setDefaultEditor(Object.class, null);
     }
 
-    public final void refreshTableStock() {
-        String query = "SELECT * FROM " + tbName_Product;
-
-        try (Connection conn = Queries.getConnection(Main.dbName); PreparedStatement pst = Queries.prepareQuery(conn, query); ResultSet rs = pst.executeQuery()) {
-            DefaultTableModel model = (DefaultTableModel) tableProduct.getModel();
-            model.setRowCount(0);
-            while (rs.next()) {
-                try {
-                    String productID = rs.getString("product_ID");
-                    String category = rs.getString("product_category");
-                    String name = rs.getString("product_name");
-                    String price = String.valueOf(rs.getFloat("product_price"));
-                    String quantity = String.valueOf(rs.getInt("product_quantity"));
-                    String totalPrice = String.valueOf(rs.getFloat("product_totalPrice"));
-                    String uom = rs.getString("product_uom");
-                    String deliveryDate = rs.getString("product_deliveryDate");
-                    String expirationDate = rs.getString("product_expirationDate");
-                    String image = "Image";
-                    String employeeID = rs.getString("employee_ID");
-
-                    model.addRow(new String[]{
-                        productID, category, name, price, quantity, totalPrice, uom, deliveryDate, expirationDate, image, employeeID
-                    });
-
-                } catch (SQLException e) {
-                    e.printStackTrace(System.out);
-                }
-            }
-
-        } catch (SQLException e) {
-            JOptionPane.showMessageDialog(null, "Database error: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
-            e.printStackTrace(System.out);
-        }
+    public void refreshTableStockAll() {
+        TableUtils.refreshTableStockAll(tableProduct);
     }
 
     /**
