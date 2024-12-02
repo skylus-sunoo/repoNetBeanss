@@ -16,17 +16,17 @@ public class PageStock extends javax.swing.JPanel {
     public PageStock() {
         initComponents();
 
-        tableProduct.getColumnModel().getColumn(0).setPreferredWidth(40);
-        tableProduct.getColumnModel().getColumn(1).setPreferredWidth(175);
-        tableProduct.getColumnModel().getColumn(2).setPreferredWidth(200);
-        tableProduct.getColumnModel().getColumn(3).setPreferredWidth(80);
-        tableProduct.getColumnModel().getColumn(4).setPreferredWidth(80);
+        tableProduct.getColumnModel().getColumn(0).setPreferredWidth(47);
+        tableProduct.getColumnModel().getColumn(1).setPreferredWidth(205);
+        tableProduct.getColumnModel().getColumn(2).setPreferredWidth(235);
+        tableProduct.getColumnModel().getColumn(3).setPreferredWidth(94);
+        tableProduct.getColumnModel().getColumn(4).setPreferredWidth(94);
         tableProduct.getColumnModel().getColumn(6).setPreferredWidth(100);
         tableProduct.getColumnModel().getColumn(7).setPreferredWidth(100);
         tableProduct.getColumnModel().getColumn(8).setPreferredWidth(100);
-        tableProduct.getColumnModel().getColumn(9).setPreferredWidth(124);
+        tableProduct.getColumnModel().getColumn(9).setPreferredWidth(150);
         tableProduct.getColumnModel().getColumn(9).setCellRenderer(new ImageRenderer());
-        tableProduct.getColumnModel().getColumn(10).setPreferredWidth(150);
+        tableProduct.getColumnModel().getColumn(10).setPreferredWidth(135);
         tableProduct.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
         TableUtils.refreshTableStockAll(tableProduct);
 
@@ -51,15 +51,26 @@ public class PageStock extends javax.swing.JPanel {
         scrollProduct = new javax.swing.JScrollPane();
         tableProduct = new project.swing.Table();
 
-        setMaximumSize(new java.awt.Dimension(915, 544));
-        setMinimumSize(new java.awt.Dimension(915, 544));
-        setPreferredSize(new java.awt.Dimension(915, 544));
+        setMaximumSize(new java.awt.Dimension(1389, 844));
+        setMinimumSize(new java.awt.Dimension(1389, 844));
+        setPreferredSize(new java.awt.Dimension(1389, 844));
 
-        panelBody.setMaximumSize(new java.awt.Dimension(915, 544));
-        panelBody.setMinimumSize(new java.awt.Dimension(915, 544));
-        panelBody.setPreferredSize(new java.awt.Dimension(915, 544));
+        panelBody.setMaximumSize(new java.awt.Dimension(1389, 844));
+        panelBody.setMinimumSize(new java.awt.Dimension(1389, 844));
+        panelBody.setPreferredSize(new java.awt.Dimension(1389, 844));
 
         panelMain.setOpaque(false);
+
+        javax.swing.GroupLayout panelMainLayout = new javax.swing.GroupLayout(panelMain);
+        panelMain.setLayout(panelMainLayout);
+        panelMainLayout.setHorizontalGroup(
+            panelMainLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 1389, Short.MAX_VALUE)
+        );
+        panelMainLayout.setVerticalGroup(
+            panelMainLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 844, Short.MAX_VALUE)
+        );
 
         scrollProduct.setBorder(null);
 
@@ -74,25 +85,17 @@ public class PageStock extends javax.swing.JPanel {
                 "ID", "Category", "Name", "Price", "Quantity", "Total Price", "Unit of Measure", "Delivery Date", "Expiry Date", "Image", "Employee"
             }
         ));
+        tableProduct.setRowHeight(150);
         scrollProduct.setViewportView(tableProduct);
-
-        javax.swing.GroupLayout panelMainLayout = new javax.swing.GroupLayout(panelMain);
-        panelMain.setLayout(panelMainLayout);
-        panelMainLayout.setHorizontalGroup(
-            panelMainLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(scrollProduct, javax.swing.GroupLayout.DEFAULT_SIZE, 883, Short.MAX_VALUE)
-        );
-        panelMainLayout.setVerticalGroup(
-            panelMainLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(scrollProduct, javax.swing.GroupLayout.DEFAULT_SIZE, 513, Short.MAX_VALUE)
-        );
 
         javax.swing.GroupLayout panelBodyLayout = new javax.swing.GroupLayout(panelBody);
         panelBody.setLayout(panelBodyLayout);
         panelBodyLayout.setHorizontalGroup(
             panelBodyLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(panelBodyLayout.createSequentialGroup()
-                .addGap(14, 14, 14)
+                .addGap(15, 15, 15)
+                .addComponent(scrollProduct, javax.swing.GroupLayout.PREFERRED_SIZE, 1350, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(panelMain, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(14, 14, 14))
         );
@@ -100,8 +103,10 @@ public class PageStock extends javax.swing.JPanel {
             panelBodyLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(panelBodyLayout.createSequentialGroup()
                 .addGap(14, 14, 14)
-                .addComponent(panelMain, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(17, Short.MAX_VALUE))
+                .addGroup(panelBodyLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(scrollProduct, javax.swing.GroupLayout.PREFERRED_SIZE, 812, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(panelMain, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);

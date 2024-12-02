@@ -89,8 +89,7 @@ public class MenuItem extends javax.swing.JPanel {
                 .addGap(20, 20, 20)
                 .addComponent(lbIcon)
                 .addGap(18, 18, 18)
-                .addComponent(lbName, javax.swing.GroupLayout.PREFERRED_SIZE, 95, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(16, Short.MAX_VALUE))
+                .addComponent(lbName, javax.swing.GroupLayout.DEFAULT_SIZE, 111, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)

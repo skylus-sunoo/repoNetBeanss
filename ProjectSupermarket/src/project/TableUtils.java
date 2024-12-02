@@ -41,7 +41,7 @@ public class TableUtils {
                     if (blob != null) {
                         byte[] imageBytes = blob.getBytes(1, (int) blob.length());
                         imageIcon = new ImageIcon(imageBytes);
-                        Image img = imageIcon.getImage().getScaledInstance(124, 124, Image.SCALE_SMOOTH);
+                        Image img = imageIcon.getImage().getScaledInstance(150, 150, Image.SCALE_SMOOTH);
                         imageIcon = new ImageIcon(img);
                     }
                     

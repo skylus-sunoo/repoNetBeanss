@@ -1,6 +1,5 @@
 package project.page;
 
-import com.mysql.cj.jdbc.Blob;
 import java.awt.Color;
 import java.awt.Image;
 import java.awt.event.ActionEvent;
@@ -16,7 +15,10 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -29,7 +31,6 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.filechooser.FileNameExtensionFilter;
-import javax.swing.table.DefaultTableModel;
 import project.Main;
 import static project.Main.tbName_Product;
 import project.Queries;
@@ -49,7 +50,9 @@ public class PageDeliver extends javax.swing.JPanel {
     String imgPath = null;
 
     // Pages
+    private final SearchEmpty SearchEmpty = new SearchEmpty();
     private final SearchCategory SearchCategory = new SearchCategory();
+    private final SearchDeliveryDateSingle SearchDeliveryDateSingle = new SearchDeliveryDateSingle();
     private final SearchDeliveryDateBetween SearchDeliveryDateBetween = new SearchDeliveryDateBetween();
 
     /**
@@ -66,7 +69,7 @@ public class PageDeliver extends javax.swing.JPanel {
 //        WindowUtils.setTransparentFrame(fieldImage);
         WindowUtils.setTransparentFrame(fieldDOE);
 
-        setForm(SearchCategory);
+        setForm(SearchEmpty);
 
         fieldName.getDocument().addDocumentListener(new PageDeliver.FieldChangeListener());
         fieldPrice.getDocument().addDocumentListener(new PageDeliver.FieldChangeListener());
@@ -80,7 +83,7 @@ public class PageDeliver extends javax.swing.JPanel {
         tableProduct.getColumnModel().getColumn(6).setPreferredWidth(100);
         tableProduct.getColumnModel().getColumn(7).setPreferredWidth(100);
         tableProduct.getColumnModel().getColumn(8).setPreferredWidth(100);
-        tableProduct.getColumnModel().getColumn(9).setPreferredWidth(124);
+        tableProduct.getColumnModel().getColumn(9).setPreferredWidth(150);
         tableProduct.getColumnModel().getColumn(9).setCellRenderer(new ImageRenderer());
         tableProduct.getColumnModel().getColumn(10).setPreferredWidth(150);
         tableProduct.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
@@ -380,6 +383,14 @@ public class PageDeliver extends javax.swing.JPanel {
         }
     }
 
+    public void repopulateCategoryComboBox() {
+        Queries.repopulateComboBox(comboCategory, "product_category", "SELECT DISTINCT product_category FROM " + Main.tbName_ProductCategory);
+    }
+
+    public String getSelectedCategory() {
+        return (String) comboCategory.getSelectedItem();
+    }
+
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -393,12 +404,13 @@ public class PageDeliver extends javax.swing.JPanel {
         dateDOE = new project.date.DateChooser();
         fieldID = new javax.swing.JTextField();
         jProgressBar1 = new javax.swing.JProgressBar();
+        fieldName = new javax.swing.JTextField();
         panelBody = new project.component.ShadowPanel();
         panelMain = new javax.swing.JPanel();
         comboCategory = new javax.swing.JComboBox<>();
         separatorCategory = new javax.swing.JSeparator();
         labelName = new javax.swing.JLabel();
-        fieldName = new javax.swing.JTextField();
+        comboName = new javax.swing.JComboBox<>();
         separatorName = new javax.swing.JSeparator();
         labelCategory = new javax.swing.JLabel();
         labelPrice = new javax.swing.JLabel();
@@ -423,17 +435,17 @@ public class PageDeliver extends javax.swing.JPanel {
         btnDOE = new javax.swing.JButton();
         btnImage = new javax.swing.JButton();
         labelImgIcon = new javax.swing.JLabel();
-        scrollProduct = new javax.swing.JScrollPane();
-        tableProduct = new project.swing.Table();
         panelButtons = new javax.swing.JPanel();
         btnAddProduct = new javax.swing.JButton();
         btnUpdateProduct = new javax.swing.JButton();
-        btnDeleteProduct = new javax.swing.JButton();
         btnClearProduct = new javax.swing.JButton();
+        btnDeleteProduct = new javax.swing.JButton();
+        scrollProduct = new javax.swing.JScrollPane();
+        tableProduct = new project.swing.Table();
+        panelSearch = new javax.swing.JPanel();
         labelSearch = new javax.swing.JLabel();
         comboSearch = new javax.swing.JComboBox<>();
         btnSearch = new javax.swing.JButton();
-        panelSearch = new javax.swing.JPanel();
 
         dateDOD.setDateFormat("yyyy-MM-dd");
         dateDOD.setTextRefernce(fieldDOD);
@@ -442,24 +454,6 @@ public class PageDeliver extends javax.swing.JPanel {
         dateDOE.setTextRefernce(fieldDOE);
 
         fieldID.setText("jTextField1");
-
-        setMaximumSize(new java.awt.Dimension(915, 544));
-        setMinimumSize(new java.awt.Dimension(915, 544));
-
-        panelBody.setMaximumSize(new java.awt.Dimension(915, 544));
-        panelBody.setMinimumSize(new java.awt.Dimension(915, 544));
-        panelBody.setPreferredSize(new java.awt.Dimension(915, 544));
-
-        panelMain.setOpaque(false);
-
-        comboCategory.setFont(new java.awt.Font("Yu Gothic UI Semibold", 0, 12)); // NOI18N
-        comboCategory.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "BEVERAGES", "BREADS AND BAKERY", "CANNED AND JARRED", "DAIRY", "DRY GOODS AND BAKING", "FRESH PRODUCE", "FROZEN", "HEALTH AND WELLNESS", "HOUSEHOLD", "MEAT", "PERSONAL CARE", "PET CARE", "SNACKS" }));
-
-        labelName.setFont(new java.awt.Font("Yu Gothic UI Semibold", 0, 14)); // NOI18N
-        labelName.setText("Name");
-        labelName.setMaximumSize(new java.awt.Dimension(67, 20));
-        labelName.setMinimumSize(new java.awt.Dimension(67, 20));
-        labelName.setPreferredSize(new java.awt.Dimension(67, 20));
 
         fieldName.setFont(new java.awt.Font("Yu Gothic UI Semibold", 0, 12)); // NOI18N
         fieldName.setForeground(new java.awt.Color(153, 153, 153));
@@ -474,6 +468,32 @@ public class PageDeliver extends javax.swing.JPanel {
                 fieldNameFocusLost(evt);
             }
         });
+
+        setMaximumSize(new java.awt.Dimension(1389, 844));
+        setMinimumSize(new java.awt.Dimension(1389, 844));
+
+        panelBody.setMaximumSize(new java.awt.Dimension(1389, 844));
+        panelBody.setMinimumSize(new java.awt.Dimension(1389, 844));
+        panelBody.setPreferredSize(new java.awt.Dimension(1389, 844));
+
+        panelMain.setOpaque(false);
+
+        comboCategory.setFont(new java.awt.Font("Yu Gothic UI Semibold", 0, 12)); // NOI18N
+        comboCategory.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "BEVERAGES", "BREADS AND BAKERY", "CANNED AND JARRED", "DAIRY", "DRY GOODS AND BAKING", "FRESH PRODUCE", "FROZEN", "HEALTH AND WELLNESS", "HOUSEHOLD", "MEAT", "PERSONAL CARE", "PET CARE", "SNACKS" }));
+        comboCategory.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                comboCategoryActionPerformed(evt);
+            }
+        });
+
+        labelName.setFont(new java.awt.Font("Yu Gothic UI Semibold", 0, 14)); // NOI18N
+        labelName.setText("Name");
+        labelName.setMaximumSize(new java.awt.Dimension(67, 20));
+        labelName.setMinimumSize(new java.awt.Dimension(67, 20));
+        labelName.setPreferredSize(new java.awt.Dimension(67, 20));
+
+        comboName.setFont(new java.awt.Font("Yu Gothic UI Semibold", 0, 12)); // NOI18N
+        comboName.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Item 1" }));
 
         labelCategory.setFont(new java.awt.Font("Yu Gothic UI Semibold", 0, 14)); // NOI18N
         labelCategory.setText("Category");
@@ -604,6 +624,72 @@ public class PageDeliver extends javax.swing.JPanel {
             }
         });
 
+        panelButtons.setOpaque(false);
+
+        btnAddProduct.setText("Add");
+        btnAddProduct.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+        btnAddProduct.setEnabled(false);
+        btnAddProduct.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnAddProductActionPerformed(evt);
+            }
+        });
+
+        btnUpdateProduct.setText("Update");
+        btnUpdateProduct.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+        btnUpdateProduct.setEnabled(false);
+        btnUpdateProduct.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnUpdateProductActionPerformed(evt);
+            }
+        });
+
+        btnClearProduct.setText("Clear");
+        btnClearProduct.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+        btnClearProduct.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnClearProductActionPerformed(evt);
+            }
+        });
+
+        btnDeleteProduct.setText("Delete");
+        btnDeleteProduct.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+        btnDeleteProduct.setEnabled(false);
+        btnDeleteProduct.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnDeleteProductActionPerformed(evt);
+            }
+        });
+
+        javax.swing.GroupLayout panelButtonsLayout = new javax.swing.GroupLayout(panelButtons);
+        panelButtons.setLayout(panelButtonsLayout);
+        panelButtonsLayout.setHorizontalGroup(
+            panelButtonsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(panelButtonsLayout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(panelButtonsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                    .addComponent(btnUpdateProduct, javax.swing.GroupLayout.DEFAULT_SIZE, 170, Short.MAX_VALUE)
+                    .addComponent(btnAddProduct, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(panelButtonsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(btnClearProduct, javax.swing.GroupLayout.DEFAULT_SIZE, 170, Short.MAX_VALUE)
+                    .addComponent(btnDeleteProduct, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addContainerGap())
+        );
+        panelButtonsLayout.setVerticalGroup(
+            panelButtonsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(panelButtonsLayout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(panelButtonsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(btnAddProduct)
+                    .addComponent(btnClearProduct))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(panelButtonsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(btnUpdateProduct)
+                    .addComponent(btnDeleteProduct))
+                .addContainerGap(34, Short.MAX_VALUE))
+        );
+
         javax.swing.GroupLayout panelMainLayout = new javax.swing.GroupLayout(panelMain);
         panelMain.setLayout(panelMainLayout);
         panelMainLayout.setHorizontalGroup(
@@ -621,13 +707,10 @@ public class PageDeliver extends javax.swing.JPanel {
                                     .addComponent(labelName, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                                     .addComponent(labelCategory, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                                 .addGap(100, 100, 100)
-                                .addGroup(panelMainLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                                    .addComponent(comboCategory, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                    .addComponent(fieldName))))
+                                .addComponent(comboCategory, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
                         .addGap(528, 528, 528))
                     .addGroup(panelMainLayout.createSequentialGroup()
                         .addGroup(panelMainLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                            .addComponent(separatorCategory, javax.swing.GroupLayout.PREFERRED_SIZE, 177, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addGroup(panelMainLayout.createSequentialGroup()
                                 .addGroup(panelMainLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                                     .addComponent(labelQuantity, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
@@ -655,13 +738,19 @@ public class PageDeliver extends javax.swing.JPanel {
                                         .addComponent(fieldDOE)
                                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                         .addComponent(btnDOE))
-                                    .addComponent(separatorDOE))))
+                                    .addComponent(separatorDOE)))
+                            .addGroup(panelMainLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                                .addComponent(comboName, javax.swing.GroupLayout.Alignment.TRAILING, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                .addComponent(separatorCategory, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, 177, Short.MAX_VALUE)))
                         .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
             .addGroup(panelMainLayout.createSequentialGroup()
-                .addGap(25, 25, 25)
-                .addComponent(btnImage, javax.swing.GroupLayout.PREFERRED_SIZE, 115, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(58, 58, 58)
-                .addComponent(labelImgIcon, javax.swing.GroupLayout.PREFERRED_SIZE, 124, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGroup(panelMainLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(panelMainLayout.createSequentialGroup()
+                        .addGap(25, 25, 25)
+                        .addComponent(btnImage, javax.swing.GroupLayout.PREFERRED_SIZE, 115, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(58, 58, 58)
+                        .addComponent(labelImgIcon, javax.swing.GroupLayout.PREFERRED_SIZE, 124, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(panelButtons, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         panelMainLayout.setVerticalGroup(
@@ -675,8 +764,8 @@ public class PageDeliver extends javax.swing.JPanel {
                 .addComponent(separatorCategory, javax.swing.GroupLayout.PREFERRED_SIZE, 10, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(5, 5, 5)
                 .addGroup(panelMainLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(fieldName, javax.swing.GroupLayout.PREFERRED_SIZE, 22, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(labelName, javax.swing.GroupLayout.PREFERRED_SIZE, 22, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(labelName, javax.swing.GroupLayout.PREFERRED_SIZE, 22, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(comboName, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addGap(6, 6, 6)
                 .addComponent(separatorName, javax.swing.GroupLayout.PREFERRED_SIZE, 10, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(5, 5, 5)
@@ -724,6 +813,8 @@ public class PageDeliver extends javax.swing.JPanel {
                     .addGroup(panelMainLayout.createSequentialGroup()
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(labelImgIcon, javax.swing.GroupLayout.PREFERRED_SIZE, 124, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(panelButtons, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap())
         );
 
@@ -740,7 +831,7 @@ public class PageDeliver extends javax.swing.JPanel {
                 "ID", "Category", "Name", "Price", "Quantity", "Total Price", "Unit of Measure", "Delivery Date", "Expiry Date", "Image", "Employee"
             }
         ));
-        tableProduct.setRowHeight(124);
+        tableProduct.setRowHeight(150);
         scrollProduct.setViewportView(tableProduct);
         if (tableProduct.getColumnModel().getColumnCount() > 0) {
             tableProduct.getColumnModel().getColumn(0).setHeaderValue("ID");
@@ -756,42 +847,11 @@ public class PageDeliver extends javax.swing.JPanel {
             tableProduct.getColumnModel().getColumn(10).setHeaderValue("Employee");
         }
 
-        panelButtons.setOpaque(false);
-
-        btnAddProduct.setText("Add");
-        btnAddProduct.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
-        btnAddProduct.setEnabled(false);
-        btnAddProduct.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                btnAddProductActionPerformed(evt);
-            }
-        });
-
-        btnUpdateProduct.setText("Update");
-        btnUpdateProduct.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
-        btnUpdateProduct.setEnabled(false);
-        btnUpdateProduct.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                btnUpdateProductActionPerformed(evt);
-            }
-        });
-
-        btnDeleteProduct.setText("Delete");
-        btnDeleteProduct.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
-        btnDeleteProduct.setEnabled(false);
-        btnDeleteProduct.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                btnDeleteProductActionPerformed(evt);
-            }
-        });
-
-        btnClearProduct.setText("Clear");
-        btnClearProduct.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
-        btnClearProduct.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                btnClearProductActionPerformed(evt);
-            }
-        });
+        panelSearch.setMaximumSize(new java.awt.Dimension(520, 35));
+        panelSearch.setMinimumSize(new java.awt.Dimension(520, 35));
+        panelSearch.setOpaque(false);
+        panelSearch.setPreferredSize(new java.awt.Dimension(520, 35));
+        panelSearch.setLayout(new java.awt.BorderLayout());
 
         labelSearch.setFont(new java.awt.Font("Yu Gothic UI Semibold", 0, 14)); // NOI18N
         labelSearch.setText("Search for Products");
@@ -811,52 +871,6 @@ public class PageDeliver extends javax.swing.JPanel {
             }
         });
 
-        javax.swing.GroupLayout panelButtonsLayout = new javax.swing.GroupLayout(panelButtons);
-        panelButtons.setLayout(panelButtonsLayout);
-        panelButtonsLayout.setHorizontalGroup(
-            panelButtonsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(panelButtonsLayout.createSequentialGroup()
-                .addContainerGap()
-                .addGroup(panelButtonsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(panelButtonsLayout.createSequentialGroup()
-                        .addComponent(btnAddProduct, javax.swing.GroupLayout.PREFERRED_SIZE, 112, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addComponent(btnClearProduct, javax.swing.GroupLayout.PREFERRED_SIZE, 112, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(18, 18, 18)
-                        .addComponent(btnUpdateProduct, javax.swing.GroupLayout.PREFERRED_SIZE, 112, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(18, 18, 18)
-                        .addComponent(btnDeleteProduct, javax.swing.GroupLayout.PREFERRED_SIZE, 112, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addGroup(panelButtonsLayout.createSequentialGroup()
-                        .addGap(0, 0, Short.MAX_VALUE)
-                        .addComponent(labelSearch)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(comboSearch, javax.swing.GroupLayout.PREFERRED_SIZE, 294, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(btnSearch)))
-                .addContainerGap())
-        );
-        panelButtonsLayout.setVerticalGroup(
-            panelButtonsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(panelButtonsLayout.createSequentialGroup()
-                .addContainerGap()
-                .addGroup(panelButtonsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(btnAddProduct)
-                    .addComponent(btnClearProduct)
-                    .addComponent(btnUpdateProduct)
-                    .addComponent(btnDeleteProduct))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addGroup(panelButtonsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(labelSearch, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(comboSearch, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(btnSearch)))
-        );
-
-        panelSearch.setMaximumSize(new java.awt.Dimension(520, 35));
-        panelSearch.setMinimumSize(new java.awt.Dimension(520, 35));
-        panelSearch.setOpaque(false);
-        panelSearch.setPreferredSize(new java.awt.Dimension(520, 35));
-        panelSearch.setLayout(new java.awt.BorderLayout());
-
         javax.swing.GroupLayout panelBodyLayout = new javax.swing.GroupLayout(panelBody);
         panelBody.setLayout(panelBodyLayout);
         panelBodyLayout.setHorizontalGroup(
@@ -865,25 +879,36 @@ public class PageDeliver extends javax.swing.JPanel {
                 .addGap(16, 16, 16)
                 .addComponent(panelMain, javax.swing.GroupLayout.PREFERRED_SIZE, 357, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(6, 6, 6)
-                .addGroup(panelBodyLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                    .addComponent(panelButtons, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(scrollProduct)
-                    .addComponent(panelSearch, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                .addContainerGap(16, Short.MAX_VALUE))
+                .addGroup(panelBodyLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(panelBodyLayout.createSequentialGroup()
+                        .addComponent(labelSearch)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(comboSearch, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(btnSearch)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(panelSearch, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(scrollProduct, javax.swing.GroupLayout.PREFERRED_SIZE, 993, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addContainerGap(10, Short.MAX_VALUE))
         );
         panelBodyLayout.setVerticalGroup(
             panelBodyLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(panelBodyLayout.createSequentialGroup()
-                .addGap(16, 16, 16)
                 .addGroup(panelBodyLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(panelMain, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addGroup(panelBodyLayout.createSequentialGroup()
-                        .addComponent(scrollProduct, javax.swing.GroupLayout.PREFERRED_SIZE, 400, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(panelButtons, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(panelSearch, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(0, 17, Short.MAX_VALUE)))
+                        .addGap(16, 16, 16)
+                        .addComponent(panelMain, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                    .addGroup(panelBodyLayout.createSequentialGroup()
+                        .addGap(10, 10, 10)
+                        .addGroup(panelBodyLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                            .addGroup(panelBodyLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                                .addComponent(labelSearch, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addComponent(comboSearch, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addComponent(btnSearch))
+                            .addComponent(panelSearch, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addGap(12, 12, 12)
+                        .addComponent(scrollProduct, javax.swing.GroupLayout.PREFERRED_SIZE, 769, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(0, 12, Short.MAX_VALUE)))
                 .addContainerGap())
         );
 
@@ -1029,8 +1054,11 @@ public class PageDeliver extends javax.swing.JPanel {
     }//GEN-LAST:event_btnImageActionPerformed
 
     private void btnSearchActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSearchActionPerformed
+        String query;
         String startDateString;
         String endDateString;
+        LocalDate startDate;
+        LocalDate endDate;
         switch (String.valueOf(comboSearch.getSelectedItem())) {
             case "Everything":
                 refreshTableStockAll(tableProduct);
@@ -1039,16 +1067,74 @@ public class PageDeliver extends javax.swing.JPanel {
                 String selectedCategory = SearchCategory.getSelectedCategory();
                 refreshTableStock(tableProduct, "SELECT * FROM " + tbName_Product + " WHERE product_category = '" + selectedCategory + "'");
                 break;
+            case "Delivered after a date":
+                startDateString = SearchDeliveryDateSingle.getFieldSearchDateStart().getText();
+
+                startDate = LocalDate.parse(startDateString);
+                query = "SELECT * FROM " + tbName_Product + " WHERE product_deliveryDate >= '" + startDate + "'";
+                refreshTableStock(tableProduct, query);
+                break;
+            case "Delivered before a date":
+                startDateString = SearchDeliveryDateSingle.getFieldSearchDateStart().getText();
+
+                startDate = LocalDate.parse(startDateString);
+                query = "SELECT * FROM " + tbName_Product + " WHERE product_deliveryDate <= '" + startDate + "'";
+                refreshTableStock(tableProduct, query);
+                break;
             case "Delivered between two dates":
                 startDateString = SearchDeliveryDateBetween.getFieldSearchDateStart().getText();
                 endDateString = SearchDeliveryDateBetween.getFieldSearchDateEnd().getText();
 
-                LocalDate startDate = LocalDate.parse(startDateString);
-                LocalDate endDate = LocalDate.parse(endDateString);
+                startDate = LocalDate.parse(startDateString);
+                endDate = LocalDate.parse(endDateString);
 
                 if (startDate.isBefore(endDate) || startDate.equals(endDate)) {
-                    String query = "SELECT * FROM " + tbName_Product + " WHERE product_deliveryDate BETWEEN '"
+                    query = "SELECT * FROM " + tbName_Product + " WHERE product_deliveryDate BETWEEN '"
                             + startDate + "' AND '" + endDate + "'";
+                    refreshTableStock(tableProduct, query);
+                } else {
+                    JOptionPane.showMessageDialog(this, "Start Date must come before the End Date!", "Error", JOptionPane.INFORMATION_MESSAGE);
+                }
+                break;
+            case "Expired after a date":
+                startDateString = SearchDeliveryDateSingle.getFieldSearchDateStart().getText();
+
+                startDate = LocalDate.parse(startDateString);
+                query = "SELECT * FROM " + tbName_Product + " WHERE product_expirationDate >= '" + startDate + "'";
+                refreshTableStock(tableProduct, query);
+                break;
+            case "Expired before a date":
+                startDateString = SearchDeliveryDateSingle.getFieldSearchDateStart().getText();
+
+                startDate = LocalDate.parse(startDateString);
+                query = "SELECT * FROM " + tbName_Product + " WHERE product_expirationDate <= '" + startDate + "'";
+                refreshTableStock(tableProduct, query);
+                break;
+            case "Expired between two dates":
+                startDateString = SearchDeliveryDateBetween.getFieldSearchDateStart().getText();
+                endDateString = SearchDeliveryDateBetween.getFieldSearchDateEnd().getText();
+
+                startDate = LocalDate.parse(startDateString);
+                endDate = LocalDate.parse(endDateString);
+
+                if (startDate.isBefore(endDate) || startDate.equals(endDate)) {
+                    query = "SELECT * FROM " + tbName_Product + " WHERE product_expirationDate BETWEEN '"
+                            + startDate + "' AND '" + endDate + "'";
+                    refreshTableStock(tableProduct, query);
+                } else {
+                    JOptionPane.showMessageDialog(this, "Start Date must come before the End Date!", "Error", JOptionPane.INFORMATION_MESSAGE);
+                }
+                break;
+            case "Delivered and Expired between two dates":
+                startDateString = SearchDeliveryDateBetween.getFieldSearchDateStart().getText();
+                endDateString = SearchDeliveryDateBetween.getFieldSearchDateEnd().getText();
+
+                startDate = LocalDate.parse(startDateString);
+                endDate = LocalDate.parse(endDateString);
+
+                if (startDate.isBefore(endDate) || startDate.equals(endDate)) {
+                    query = "SELECT * FROM " + tbName_Product + " WHERE product_deliveryDate >= '" 
+                            + startDate + "' AND product_expirationDate <= '" + endDate + "'";
                     refreshTableStock(tableProduct, query);
                 } else {
                     JOptionPane.showMessageDialog(this, "Start Date must come before the End Date!", "Error", JOptionPane.INFORMATION_MESSAGE);
@@ -1062,18 +1148,30 @@ public class PageDeliver extends javax.swing.JPanel {
     private void comboSearchActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_comboSearchActionPerformed
         switch (String.valueOf(comboSearch.getSelectedItem())) {
             case "Everything":
-//                setForm(SearchCategory);
+                setForm(SearchEmpty);
                 break;
             case "Under a Category":
                 setForm(SearchCategory);
                 break;
+            case "Delivered after a date":
+            case "Delivered before a date":
+            case "Expired after a date":
+            case "Expired before a date":
+                setForm(SearchDeliveryDateSingle);
+                break;
             case "Delivered between two dates":
+            case "Expired between two dates":
+            case "Delivered and Expired between two dates":
                 setForm(SearchDeliveryDateBetween);
                 break;
             default:
                 throw new AssertionError();
         }
     }//GEN-LAST:event_comboSearchActionPerformed
+
+    private void comboCategoryActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_comboCategoryActionPerformed
+        Queries.repopulateComboBox(comboName, "product_name", "SELECT DISTINCT product_name FROM " + Main.tbName_ProductItem + " WHERE product_category = '" + comboCategory.getSelectedItem() + "'");
+    }//GEN-LAST:event_comboCategoryActionPerformed
 
     public ImageIcon ResizeImage(String imgPath, byte[] pic) {
         ImageIcon resizeImg;
@@ -1110,6 +1208,7 @@ public class PageDeliver extends javax.swing.JPanel {
     private javax.swing.JButton btnSearch;
     private javax.swing.JButton btnUpdateProduct;
     private javax.swing.JComboBox<String> comboCategory;
+    private javax.swing.JComboBox<String> comboName;
     private javax.swing.JComboBox<String> comboSearch;
     private javax.swing.JComboBox<String> comboUOM;
     private project.date.DateChooser dateDOD;

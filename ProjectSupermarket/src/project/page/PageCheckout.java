@@ -26,13 +26,13 @@ public class PageCheckout extends javax.swing.JPanel {
         panelMain = new javax.swing.JPanel();
         jLabel1 = new javax.swing.JLabel();
 
-        setMaximumSize(new java.awt.Dimension(915, 544));
-        setMinimumSize(new java.awt.Dimension(915, 544));
-        setPreferredSize(new java.awt.Dimension(915, 544));
+        setMaximumSize(new java.awt.Dimension(1389, 844));
+        setMinimumSize(new java.awt.Dimension(1389, 844));
+        setPreferredSize(new java.awt.Dimension(1389, 844));
 
-        panelBody.setMaximumSize(new java.awt.Dimension(915, 544));
-        panelBody.setMinimumSize(new java.awt.Dimension(915, 544));
-        panelBody.setPreferredSize(new java.awt.Dimension(915, 544));
+        panelBody.setMaximumSize(new java.awt.Dimension(1389, 844));
+        panelBody.setMinimumSize(new java.awt.Dimension(1389, 844));
+        panelBody.setPreferredSize(new java.awt.Dimension(1389, 844));
 
         panelMain.setOpaque(false);
 
@@ -40,11 +40,11 @@ public class PageCheckout extends javax.swing.JPanel {
         panelMain.setLayout(panelMainLayout);
         panelMainLayout.setHorizontalGroup(
             panelMainLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 886, Short.MAX_VALUE)
+            .addGap(0, 1369, Short.MAX_VALUE)
         );
         panelMainLayout.setVerticalGroup(
             panelMainLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 514, Short.MAX_VALUE)
+            .addGap(0, 824, Short.MAX_VALUE)
         );
 
         jLabel1.setText("Checkout");
@@ -56,24 +56,24 @@ public class PageCheckout extends javax.swing.JPanel {
             .addGroup(panelBodyLayout.createSequentialGroup()
                 .addGap(146, 146, 146)
                 .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 120, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(649, Short.MAX_VALUE))
+                .addContainerGap(1123, Short.MAX_VALUE))
             .addGroup(panelBodyLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                 .addGroup(panelBodyLayout.createSequentialGroup()
                     .addGap(14, 14, 14)
-                    .addComponent(panelMain, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addContainerGap(15, Short.MAX_VALUE)))
+                    .addComponent(panelMain, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addContainerGap()))
         );
         panelBodyLayout.setVerticalGroup(
             panelBodyLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(panelBodyLayout.createSequentialGroup()
                 .addGap(112, 112, 112)
                 .addComponent(jLabel1)
-                .addContainerGap(416, Short.MAX_VALUE))
+                .addContainerGap(716, Short.MAX_VALUE))
             .addGroup(panelBodyLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                 .addGroup(panelBodyLayout.createSequentialGroup()
                     .addGap(14, 14, 14)
-                    .addComponent(panelMain, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addContainerGap(16, Short.MAX_VALUE)))
+                    .addComponent(panelMain, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addContainerGap()))
         );
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);

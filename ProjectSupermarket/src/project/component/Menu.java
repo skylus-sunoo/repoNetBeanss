@@ -34,15 +34,16 @@ public class Menu extends javax.swing.JPanel {
         listMenu.setOpaque(false);
         listMenu.addItem(new Model_Menu("Inventory", Model_Menu.MenuType.TITLE));
         listMenu.addItem(new Model_Menu("Stock", "1", Model_Menu.MenuType.MENU));
-        listMenu.addItem(new Model_Menu("Add Delivery", "2", Model_Menu.MenuType.MENU));
-        listMenu.addItem(new Model_Menu("Checkout", "3", Model_Menu.MenuType.MENU));
-        listMenu.addItem(new Model_Menu("Create Report", "4", Model_Menu.MenuType.MENU));
-        listMenu.addItem(new Model_Menu("History Logs", "5", Model_Menu.MenuType.MENU));
+        listMenu.addItem(new Model_Menu("Update Stock", "2", Model_Menu.MenuType.MENU));
+        listMenu.addItem(new Model_Menu("Catalogs", "3", Model_Menu.MenuType.MENU));
+        listMenu.addItem(new Model_Menu("Checkout", "4", Model_Menu.MenuType.MENU));
+        listMenu.addItem(new Model_Menu("Create Report", "5", Model_Menu.MenuType.MENU));
+        listMenu.addItem(new Model_Menu("History Logs", "6", Model_Menu.MenuType.MENU));
         listMenu.addItem(new Model_Menu(Model_Menu.MenuType.EMPTY));
         
         listMenu.addItem(new Model_Menu("User", Model_Menu.MenuType.TITLE));
-        listMenu.addItem(new Model_Menu("Edit Profile", "6", Model_Menu.MenuType.MENU));
-        listMenu.addItem(new Model_Menu("Log Out", "7", Model_Menu.MenuType.MENU));
+        listMenu.addItem(new Model_Menu("Edit Profile", "7", Model_Menu.MenuType.MENU));
+        listMenu.addItem(new Model_Menu("Log Out", "8", Model_Menu.MenuType.MENU));
     }
 
     /**

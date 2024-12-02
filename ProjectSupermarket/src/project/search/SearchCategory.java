@@ -7,11 +7,9 @@ import java.sql.SQLException;
 import java.util.HashSet;
 import java.util.Set;
 import javax.swing.JOptionPane;
-import javax.swing.JTextField;
 import project.Main;
 import static project.Main.tbName_Product;
 import project.Queries;
-import project.WindowUtils;
 
 /**
  *
@@ -27,32 +25,7 @@ public class SearchCategory extends javax.swing.JPanel {
     }
 
     public void repopulateComboBox() {
-        Set<String> uniqueCategories = new HashSet<>();
-        String query = "SELECT DISTINCT product_category FROM " + tbName_Product;
-        try (Connection conn = Queries.getConnection(Main.dbName); PreparedStatement pst = Queries.prepareQuery(conn, query); ResultSet rs = pst.executeQuery()) {
-
-            while (rs.next()) {
-                String category = rs.getString("product_category");
-                if (category != null && !category.trim().isEmpty()) {
-                    uniqueCategories.add(category);
-                }
-            }
-
-            comboCategory.removeAllItems();
-            for (String category : uniqueCategories) {
-                comboCategory.addItem(category);
-            }
-
-            comboCategory.setSelectedIndex(0);
-
-            rs.close();
-            pst.close();
-            conn.close();
-
-        } catch (SQLException e) {
-            JOptionPane.showMessageDialog(null, "Database error: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
-            e.printStackTrace(System.out);
-        }
+        Queries.repopulateComboBox(comboCategory, "product_category", "SELECT DISTINCT product_category FROM " + Main.tbName_Product);
     }
 
     public String getSelectedCategory() {
@@ -86,6 +59,7 @@ public class SearchCategory extends javax.swing.JPanel {
         panelMain.setMinimumSize(new java.awt.Dimension(520, 35));
         panelMain.setOpaque(false);
 
+        comboCategory.setFont(new java.awt.Font("Yu Gothic UI Semibold", 0, 12)); // NOI18N
         comboCategory.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
         comboCategory.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {

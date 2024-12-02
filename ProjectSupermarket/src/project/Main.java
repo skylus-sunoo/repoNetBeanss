@@ -11,9 +11,7 @@ import javax.swing.Timer;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import javax.swing.JComponent;
-import project.page.PageCheckout;
-import project.page.PageDeliver;
-import project.page.PageStock;
+import project.page.*;
 
 /**
  *
@@ -24,6 +22,8 @@ public class Main extends javax.swing.JFrame {
     public static String dbName = "DB_Supermarket";
     public static String tbName_Employee = "TB_Employee";
     public static String tbName_Product = "TB_Product";
+    public static String tbName_ProductCategory = "TB_ProductCategory";
+    public static String tbName_ProductItem = "TB_ProductItems";
     private static int userSessionID = -1;
     private String userSessionName;
 
@@ -33,6 +33,7 @@ public class Main extends javax.swing.JFrame {
     private PageStock PageStock = new PageStock();
     private PageDeliver PageDeliver = new PageDeliver();
     private PageCheckout PageCheckout = new PageCheckout();
+    private PageCatalogs PageCatalogs = new PageCatalogs();
 
     /**
      * Creates new form Main
@@ -56,17 +57,21 @@ public class Main extends javax.swing.JFrame {
                     setForm(PageStock);
                     break;
                 case 2:
+                    PageDeliver.repopulateCategoryComboBox();
                     setForm(PageDeliver);
                     break;
                 case 3:
+                    setForm(PageCatalogs);
+                    break;
+                case 4:
                     setForm(PageCheckout);
                     break;
-                case 8:
+                case 9:
                     if (!isUserLogged() && !LogInFrame.isVisible()) {
                         LogInFrame.setVisible(true);
                     }
                     break;
-                case 9:
+                case 10:
                     if (isUserLogged()) {
                         int log_out = JOptionPane.showConfirmDialog(
                                 this,
@@ -210,7 +215,12 @@ public class Main extends javax.swing.JFrame {
         setTitle("Dashboard");
         setUndecorated(true);
 
-        panelBody.setPreferredSize(new java.awt.Dimension(915, 544));
+        panelBorder.setMaximumSize(new java.awt.Dimension(1600, 900));
+        panelBorder.setMinimumSize(new java.awt.Dimension(1600, 900));
+
+        panelBody.setMaximumSize(new java.awt.Dimension(1389, 844));
+        panelBody.setMinimumSize(new java.awt.Dimension(1389, 844));
+        panelBody.setPreferredSize(new java.awt.Dimension(1389, 844));
         panelBody.setLayout(new java.awt.BorderLayout());
 
         panelHeader.setBorder(javax.swing.BorderFactory.createEtchedBorder());
@@ -229,10 +239,10 @@ public class Main extends javax.swing.JFrame {
             panelHeaderLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(panelHeaderLayout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(labelUserSession, javax.swing.GroupLayout.DEFAULT_SIZE, 208, Short.MAX_VALUE)
-                .addGap(177, 177, 177)
+                .addComponent(labelUserSession, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addGap(18, 18, 18)
                 .addComponent(labelDateTime, javax.swing.GroupLayout.PREFERRED_SIZE, 223, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(247, 247, 247))
+                .addGap(406, 406, 406))
         );
         panelHeaderLayout.setVerticalGroup(
             panelHeaderLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -263,9 +273,9 @@ public class Main extends javax.swing.JFrame {
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(panelBorderLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(panelBorderLayout.createSequentialGroup()
-                        .addComponent(panelHeader, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(panelHeader, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(btnClose, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(btnClose)
                         .addContainerGap())
                     .addComponent(panelBody, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
         );
