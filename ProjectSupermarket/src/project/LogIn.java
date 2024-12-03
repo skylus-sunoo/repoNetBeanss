@@ -44,10 +44,7 @@ public class LogIn extends javax.swing.JFrame {
         signup_selected = false;
         loginFieldsRefresh();
 
-        WindowUtils.setTransparentFrame(fieldUsername);
-        WindowUtils.setTransparentFrame(fieldPassword);
-        WindowUtils.setTransparentFrame(fieldConfirmPassword);
-        WindowUtils.setTransparentFrame(fieldSecurityAnswer);
+        WindowUtils.setTransparentFrame(fieldUsername, fieldPassword, fieldConfirmPassword, fieldSecurityAnswer);
 
         fieldUsername.getDocument().addDocumentListener(new FieldChangeListener());
         fieldPassword.getDocument().addDocumentListener(new FieldChangeListener());
@@ -550,31 +547,19 @@ public class LogIn extends javax.swing.JFrame {
     }//GEN-LAST:event_btnSignUpActionPerformed
 
     private void fieldUsernameFocusGained(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_fieldUsernameFocusGained
-        if (fieldUsername.getText().equals("Enter Username")) {
-            fieldUsername.setText("");
-            fieldUsername.setForeground(new Color(255, 255, 255));
-        }
+        WindowUtils.setDefaultField(fieldUsername, "Enter Username", WindowUtils.FieldFocus.GAINED, Color.WHITE);
     }//GEN-LAST:event_fieldUsernameFocusGained
 
     private void fieldUsernameFocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_fieldUsernameFocusLost
-        if (fieldUsername.getText().equals("")) {
-            fieldUsername.setText("Enter Username");
-            fieldUsername.setForeground(new Color(153, 153, 153));
-        }
+        WindowUtils.setDefaultField(fieldUsername, "Enter Username", WindowUtils.FieldFocus.LOST, Color.WHITE);
     }//GEN-LAST:event_fieldUsernameFocusLost
 
     private void fieldSecurityAnswerFocusGained(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_fieldSecurityAnswerFocusGained
-        if (fieldSecurityAnswer.getText().equals("Enter Answer")) {
-            fieldSecurityAnswer.setText("");
-            fieldSecurityAnswer.setForeground(new Color(255, 255, 255));
-        }
+        WindowUtils.setDefaultField(fieldSecurityAnswer, "Enter Answer", WindowUtils.FieldFocus.GAINED, Color.WHITE);
     }//GEN-LAST:event_fieldSecurityAnswerFocusGained
 
     private void fieldSecurityAnswerFocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_fieldSecurityAnswerFocusLost
-        if (fieldSecurityAnswer.getText().equals("")) {
-            fieldSecurityAnswer.setText("Enter Answer");
-            fieldSecurityAnswer.setForeground(new Color(153, 153, 153));
-        }
+        WindowUtils.setDefaultField(fieldSecurityAnswer, "Enter Answer", WindowUtils.FieldFocus.LOST, Color.WHITE);
     }//GEN-LAST:event_fieldSecurityAnswerFocusLost
 
     private void btnForgotPasswordActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnForgotPasswordActionPerformed
@@ -591,31 +576,19 @@ public class LogIn extends javax.swing.JFrame {
     }//GEN-LAST:event_btnCreateAccountActionPerformed
 
     private void fieldConfirmPasswordFocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_fieldConfirmPasswordFocusLost
-        if (fieldConfirmPassword.getText().equals("")) {
-            fieldConfirmPassword.setText("Enter Password");
-            fieldConfirmPassword.setForeground(new Color(153, 153, 153));
-        }
+        WindowUtils.setDefaultField(fieldConfirmPassword, "Enter Password", WindowUtils.FieldFocus.LOST, Color.WHITE);
     }//GEN-LAST:event_fieldConfirmPasswordFocusLost
 
     private void fieldConfirmPasswordFocusGained(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_fieldConfirmPasswordFocusGained
-        if (fieldConfirmPassword.getText().equals("Enter Password")) {
-            fieldConfirmPassword.setText("");
-            fieldConfirmPassword.setForeground(new Color(255, 255, 255));
-        }
+        WindowUtils.setDefaultField(fieldConfirmPassword, "Enter Password", WindowUtils.FieldFocus.GAINED, Color.WHITE);
     }//GEN-LAST:event_fieldConfirmPasswordFocusGained
 
     private void fieldPasswordFocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_fieldPasswordFocusLost
-        if (fieldPassword.getText().equals("")) {
-            fieldPassword.setText("Enter Password");
-            fieldPassword.setForeground(new Color(153, 153, 153));
-        }
+        WindowUtils.setDefaultField(fieldPassword, "Enter Password", WindowUtils.FieldFocus.LOST, Color.WHITE);
     }//GEN-LAST:event_fieldPasswordFocusLost
 
     private void fieldPasswordFocusGained(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_fieldPasswordFocusGained
-        if (fieldPassword.getText().equals("Enter Password")) {
-            fieldPassword.setText("");
-            fieldPassword.setForeground(new Color(255, 255, 255));
-        }
+        WindowUtils.setDefaultField(fieldPassword, "Enter Password", WindowUtils.FieldFocus.GAINED, Color.WHITE);
     }//GEN-LAST:event_fieldPasswordFocusGained
 
     /**

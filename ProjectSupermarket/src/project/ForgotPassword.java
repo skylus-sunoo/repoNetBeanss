@@ -35,14 +35,8 @@ public class ForgotPassword extends javax.swing.JFrame {
         initComponents();
 
         setBackground(new Color(0, 0, 0, 0));
-        WindowUtils.setTransparentFrame(panelHeader);
+        WindowUtils.setTransparentFrame(panelHeader, fieldUsername, fieldPassword, fieldConfirmPassword, comboSecurityQuestion, fieldSecurityAnswer);
         WindowUtils.initMoving(ForgotPassword.this, panelHeader);
-
-        WindowUtils.setTransparentFrame(fieldUsername);
-        WindowUtils.setTransparentFrame(comboSecurityQuestion);
-        WindowUtils.setTransparentFrame(fieldSecurityAnswer);
-        WindowUtils.setTransparentFrame(fieldPassword);
-        WindowUtils.setTransparentFrame(fieldConfirmPassword);
 
         fieldUsername.getDocument().addDocumentListener(new FieldChangeListener());
         fieldPassword.getDocument().addDocumentListener(new FieldChangeListener());
@@ -414,34 +408,22 @@ public class ForgotPassword extends javax.swing.JFrame {
     }//GEN-LAST:event_btnCloseActionPerformed
 
     private void fieldUsernameFocusGained(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_fieldUsernameFocusGained
-        if (fieldUsername.getText().equals("Enter Username")) {
-            fieldUsername.setText("");
-            fieldUsername.setForeground(new Color(255, 255, 255));
-        }
+        WindowUtils.setDefaultField(fieldUsername, "Enter Username", WindowUtils.FieldFocus.GAINED, Color.WHITE);
         validUsername = false;
         canChangePassword = false;
         loginFieldsRefresh();
     }//GEN-LAST:event_fieldUsernameFocusGained
 
     private void fieldUsernameFocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_fieldUsernameFocusLost
-        if (fieldUsername.getText().equals("")) {
-            fieldUsername.setText("Enter Username");
-            fieldUsername.setForeground(new Color(153, 153, 153));
-        }
+        WindowUtils.setDefaultField(fieldUsername, "Enter Username", WindowUtils.FieldFocus.LOST, Color.WHITE);
     }//GEN-LAST:event_fieldUsernameFocusLost
 
     private void fieldSecurityAnswerFocusGained(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_fieldSecurityAnswerFocusGained
-        if (fieldSecurityAnswer.getText().equals("Enter Answer")) {
-            fieldSecurityAnswer.setText("");
-            fieldSecurityAnswer.setForeground(new Color(255, 255, 255));
-        }
+        WindowUtils.setDefaultField(fieldSecurityAnswer, "Enter Answer", WindowUtils.FieldFocus.GAINED, Color.WHITE);
     }//GEN-LAST:event_fieldSecurityAnswerFocusGained
 
     private void fieldSecurityAnswerFocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_fieldSecurityAnswerFocusLost
-        if (fieldSecurityAnswer.getText().equals("")) {
-            fieldSecurityAnswer.setText("Enter Answer");
-            fieldSecurityAnswer.setForeground(new Color(153, 153, 153));
-        }
+        WindowUtils.setDefaultField(fieldSecurityAnswer, "Enter Answer", WindowUtils.FieldFocus.LOST, Color.WHITE);
     }//GEN-LAST:event_fieldSecurityAnswerFocusLost
 
     private void btnNextActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnNextActionPerformed
@@ -452,7 +434,7 @@ public class ForgotPassword extends javax.swing.JFrame {
         try (Connection conn = Queries.getConnection(Main.dbName); PreparedStatement pst = conn.prepareStatement(query)) {
             pst.setString(1, employee_name);
             ResultSet rs = pst.executeQuery();
-                    
+
             if (rs.next()) {
                 validUsername = true;
                 loginFieldsRefresh();
@@ -484,31 +466,19 @@ public class ForgotPassword extends javax.swing.JFrame {
     }//GEN-LAST:event_btnNextAgainActionPerformed
 
     private void fieldConfirmPasswordFocusGained(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_fieldConfirmPasswordFocusGained
-        if (fieldConfirmPassword.getText().equals("Enter Password")) {
-            fieldConfirmPassword.setText("");
-            fieldConfirmPassword.setForeground(new Color(255, 255, 255));
-        }
+        WindowUtils.setDefaultField(fieldConfirmPassword, "Enter Password", WindowUtils.FieldFocus.GAINED, Color.WHITE);
     }//GEN-LAST:event_fieldConfirmPasswordFocusGained
 
     private void fieldConfirmPasswordFocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_fieldConfirmPasswordFocusLost
-        if (fieldConfirmPassword.getText().equals("")) {
-            fieldConfirmPassword.setText("Enter Password");
-            fieldConfirmPassword.setForeground(new Color(153, 153, 153));
-        }
+        WindowUtils.setDefaultField(fieldConfirmPassword, "Enter Password", WindowUtils.FieldFocus.LOST, Color.WHITE);
     }//GEN-LAST:event_fieldConfirmPasswordFocusLost
 
     private void fieldPasswordFocusGained(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_fieldPasswordFocusGained
-        if (fieldPassword.getText().equals("Enter Password")) {
-            fieldPassword.setText("");
-            fieldPassword.setForeground(new Color(255, 255, 255));
-        }
+        WindowUtils.setDefaultField(fieldPassword, "Enter Password", WindowUtils.FieldFocus.GAINED, Color.WHITE);
     }//GEN-LAST:event_fieldPasswordFocusGained
 
     private void fieldPasswordFocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_fieldPasswordFocusLost
-        if (fieldPassword.getText().equals("")) {
-            fieldPassword.setText("Enter Password");
-            fieldPassword.setForeground(new Color(153, 153, 153));
-        }
+        WindowUtils.setDefaultField(fieldPassword, "Enter Password", WindowUtils.FieldFocus.LOST, Color.WHITE);
     }//GEN-LAST:event_fieldPasswordFocusLost
 
     private void btnLogInProceedActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnLogInProceedActionPerformed
@@ -526,7 +496,7 @@ public class ForgotPassword extends javax.swing.JFrame {
         try (Connection conn = Queries.getConnection(Main.dbName); PreparedStatement pst = conn.prepareStatement(query)) {
             pst.setString(1, employee_password);
             pst.setString(2, employee_name);
-            
+
             int rowsAffected = pst.executeUpdate();
 
             if (rowsAffected > 0) {
@@ -536,7 +506,7 @@ public class ForgotPassword extends javax.swing.JFrame {
                 try (PreparedStatement selectPst = conn.prepareStatement(selectQuery)) {
                     selectPst.setString(1, employee_name);
                     ResultSet rs = selectPst.executeQuery();
-                    
+
                     if (rs.next()) {
                         int userID = rs.getInt("employee_ID");
                         main.setUserSessionID(userID);

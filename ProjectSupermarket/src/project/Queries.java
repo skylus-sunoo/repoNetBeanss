@@ -11,7 +11,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import javax.swing.JComboBox;
-import javax.swing.JOptionPane;
+import static project.MainUtils.*;
 
 public class Queries {
 
@@ -20,7 +20,7 @@ public class Queries {
             System.out.println("Connection successful!");
             conn.close();
         } catch (SQLException e) {
-            e.printStackTrace(System.out);
+            paneDatabaseError(e);
         }
     }
 
@@ -55,9 +55,8 @@ public class Queries {
             pst.executeUpdate();
         }
     }
-    
-    
-    public static void repopulateComboBox(JComboBox comboBox, String columnName, String query){
+
+    public static void repopulateComboBox(JComboBox comboBox, String columnName, String query) {
         Set<String> uniqueItems = new HashSet<>();
         try (Connection conn = Queries.getConnection(Main.dbName); PreparedStatement pst = Queries.prepareQuery(conn, query); ResultSet rs = pst.executeQuery()) {
 
@@ -85,8 +84,7 @@ public class Queries {
             conn.close();
 
         } catch (SQLException e) {
-            JOptionPane.showMessageDialog(null, "Database error: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
-            e.printStackTrace(System.out);
+            paneDatabaseError(e);
         }
     }
 }

@@ -14,8 +14,7 @@ public class SearchDeliveryDateBetween extends javax.swing.JPanel {
      */
     public SearchDeliveryDateBetween() {
         initComponents();
-        WindowUtils.setTransparentFrame(fieldSearchDateStart);
-        WindowUtils.setTransparentFrame(fieldSearchDateEnd);
+        WindowUtils.setTransparentFrame(fieldSearchDateStart, fieldSearchDateEnd);
     }
 
     public JTextField getFieldSearchDateStart() {

@@ -6,19 +6,35 @@ import java.awt.event.*;
 
 public class WindowUtils {
 
-    public static void setTransparentFrame(JPanel frame){
-        frame.setBackground(new Color(0, 0, 0, 0));
-    }
-    
-    public static void setTransparentFrame(JTextField frame){
-        frame.setBackground(new Color(0, 0, 0, 0));
+    public enum FieldFocus {
+        GAINED, LOST
+    };
+
+    public static void setTransparentFrame(JComponent component) {
+        component.setBackground(new Color(0, 0, 0, 0));
     }
 
-    public static void setTransparentFrame(JComboBox frame){
-        frame.setBackground(new Color(0, 0, 0, 0));
+    public static void setTransparentFrame(JComponent... components) {
+        for (JComponent component : components) {
+            component.setBackground(new Color(0, 0, 0, 0));
+        }
     }
 
-    public static void setBtnIcon(JButton button, String location){
+    public static void setDefaultField(JTextField text_field, String default_text, FieldFocus field_focus, Color color) {
+        if (field_focus == FieldFocus.GAINED) {
+            if (text_field.getText().equals(default_text)) {
+                text_field.setText("");
+                text_field.setForeground(color);
+            }
+        } else if (field_focus == FieldFocus.LOST) {
+            if (text_field.getText().equals("")) {
+                text_field.setText(default_text);
+                text_field.setForeground(new Color(153, 153, 153));
+            }
+        }
+    }
+
+    public static void setBtnIcon(JButton button, String location) {
         java.net.URL imgURL = WindowUtils.class.getResource(location);
         if (imgURL != null) {
             ImageIcon icon = new ImageIcon(imgURL);
@@ -30,16 +46,18 @@ public class WindowUtils {
         button.setHorizontalTextPosition(SwingConstants.CENTER);
     }
 
-    public static void resetBtnIcon(JButton button){
+    public static void resetBtnIcon(JButton button) {
         // Create a 1x1 transparent image
-        ImageIcon transparentIcon = new ImageIcon(new ImageIcon(new byte[] {}).getImage().getScaledInstance(1, 1, Image.SCALE_DEFAULT));
+        ImageIcon transparentIcon = new ImageIcon(new ImageIcon(new byte[]{}).getImage().getScaledInstance(1, 1, Image.SCALE_DEFAULT));
 
         // Set the transparent icon to the button
         button.setIcon(transparentIcon);
     }
-    
+
     /**
-     * Initializes the dragging behavior for a JFrame using a JLabel as the drag handle.
+     * Initializes the dragging behavior for a JFrame using a JLabel as the drag
+     * handle.
+     *
      * @param frame The JFrame to be moved
      * @param panel The JLabel that will act as the drag handle
      */

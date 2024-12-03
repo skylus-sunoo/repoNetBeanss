@@ -1,27 +1,27 @@
 package project.page;
 
 import java.awt.Color;
+import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.InputStream;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
-import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.imageio.ImageIO;
 import javax.swing.ImageIcon;
 import javax.swing.JComponent;
 import javax.swing.JFileChooser;
@@ -37,6 +37,7 @@ import project.Queries;
 import project.TableUtils;
 import static project.TableUtils.refreshTableStock;
 import static project.TableUtils.refreshTableStockAll;
+import static project.MainUtils.*;
 import project.WindowUtils;
 import project.search.*;
 import project.swing.ImageRenderer;
@@ -60,14 +61,7 @@ public class PageDeliver extends javax.swing.JPanel {
      */
     public PageDeliver() {
         initComponents();
-        WindowUtils.setTransparentFrame(fieldName);
-        WindowUtils.setTransparentFrame(fieldPrice);
-        WindowUtils.setTransparentFrame(fieldQuantity);
-        WindowUtils.setTransparentFrame(fieldTotalPrice);
-        WindowUtils.setTransparentFrame(fieldDOD);
-        WindowUtils.setTransparentFrame(fieldDOE);
-//        WindowUtils.setTransparentFrame(fieldImage);
-        WindowUtils.setTransparentFrame(fieldDOE);
+        WindowUtils.setTransparentFrame(fieldName, fieldPrice, fieldQuantity, fieldTotalPrice, fieldDOD, fieldDOE);
 
         setForm(SearchEmpty);
 
@@ -167,9 +161,9 @@ public class PageDeliver extends javax.swing.JPanel {
     }
 
     public void addProduct() throws FileNotFoundException {
-        if (project.Main.getUserSessionID() > 0) {
+        if (isLoggedIn()) {
             String product_category = comboCategory.getSelectedItem().toString();
-            String product_name = fieldName.getText().toUpperCase();
+            String product_name = comboName.getSelectedItem().toString();
             String product_price = fieldPrice.getText();
             String product_quantity = fieldQuantity.getText();
             String product_uom = comboUOM.getSelectedItem().toString();
@@ -200,8 +194,30 @@ public class PageDeliver extends javax.swing.JPanel {
                     pst.setString(6, product_deliveryDate);
                     pst.setString(7, product_expirationDate);
 
-                    InputStream img = new FileInputStream(new File(imgPath));
-                    pst.setBlob(8, img);
+                    if (labelImgIcon.getIcon() == null) {
+                        InputStream img = new FileInputStream(new File(imgPath));
+                        pst.setBlob(8, img);
+                    } else {
+                        ImageIcon icon = (ImageIcon) labelImgIcon.getIcon();
+                        Image image = icon.getImage();
+
+                        BufferedImage bufferedImage = new BufferedImage(image.getWidth(null), image.getHeight(null), BufferedImage.TYPE_INT_ARGB);
+                        Graphics2D g2d = bufferedImage.createGraphics();
+                        g2d.drawImage(image, 0, 0, null);
+                        g2d.dispose();
+
+                        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+                        try {
+                            ImageIO.write(bufferedImage, "png", byteArrayOutputStream);
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+
+                        byte[] imageBytes = byteArrayOutputStream.toByteArray();
+                        InputStream img = new ByteArrayInputStream(imageBytes);
+
+                        pst.setBlob(8, img);
+                    }
 
                     pst.setString(9, employee_id);
                     pst.executeUpdate();
@@ -209,29 +225,25 @@ public class PageDeliver extends javax.swing.JPanel {
                     clearFields();
                     TableUtils.refreshTableStockAll(tableProduct);
 
-//                    Queries.executeUpdate(conn, query, product_category, product_name, product_price, product_quantity, product_uom, product_deliveryDate, product_expirationDate, employee_id);
                     JOptionPane.showMessageDialog(this, "Product Added!", "Success", JOptionPane.INFORMATION_MESSAGE);
-//                    clearFields();
-//                    TableUtils.refreshTableStock(tableProduct);
                 } catch (SQLException e) {
-                    JOptionPane.showMessageDialog(this, "Database error: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
-                    e.printStackTrace(System.out);
+                    paneDatabaseError(e);
                 }
             } else {
                 JOptionPane.showMessageDialog(this, "Expiration Date must not be the same as or before the Delivery Date!", "Error", JOptionPane.ERROR_MESSAGE);
             }
         } else {
-            JOptionPane.showMessageDialog(this, "This action requires logging in!", "Error", JOptionPane.ERROR_MESSAGE);
+            paneNotLoggedIn();
         }
     }
 
     public void updateProduct() {
-        if (project.Main.getUserSessionID() > 0) {
+        if (isLoggedIn()) {
             String path = imgPath;
 
             int id = Integer.parseInt(fieldID.getText());
             String product_category = comboCategory.getSelectedItem().toString();
-            String product_name = fieldName.getText().toUpperCase();
+            String product_name = comboName.getSelectedItem().toString();
             String product_price = fieldPrice.getText();
             String product_quantity = fieldQuantity.getText();
             String product_uom = comboUOM.getSelectedItem().toString();
@@ -268,8 +280,7 @@ public class PageDeliver extends javax.swing.JPanel {
                     clearFields();
                     TableUtils.refreshTableStockAll(tableProduct);
                 } catch (SQLException e) {
-                    JOptionPane.showMessageDialog(this, "Database error: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
-                    e.printStackTrace(System.out);
+                    paneDatabaseError(e);
                 }
 
                 if (path != null) {
@@ -286,8 +297,7 @@ public class PageDeliver extends javax.swing.JPanel {
                             clearFields();
                             TableUtils.refreshTableStockAll(tableProduct);
                         } catch (SQLException e) {
-                            JOptionPane.showMessageDialog(this, "Database error: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
-                            e.printStackTrace(System.out);
+                            paneDatabaseError(e);
                         }
                     } catch (Exception ex) {
                         JOptionPane.showMessageDialog(null, ex.getMessage());
@@ -297,12 +307,12 @@ public class PageDeliver extends javax.swing.JPanel {
                 JOptionPane.showMessageDialog(this, "Expiration Date must not be the same as or before the Delivery Date!", "Error", JOptionPane.ERROR_MESSAGE);
             }
         } else {
-            JOptionPane.showMessageDialog(this, "This action requires logging in!", "Error", JOptionPane.ERROR_MESSAGE);
+            paneNotLoggedIn();
         }
     }
 
     public void deleteProduct() {
-        if (project.Main.getUserSessionID() > 0) {
+        if (isLoggedIn()) {
             int id = Integer.parseInt(fieldID.getText());
             String query = "DELETE FROM " + tbName_Product + " WHERE product_ID = ?";
 
@@ -315,11 +325,10 @@ public class PageDeliver extends javax.swing.JPanel {
                 clearFields();
                 TableUtils.refreshTableStockAll(tableProduct);
             } catch (SQLException e) {
-                JOptionPane.showMessageDialog(this, "Database error: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
-                e.printStackTrace(System.out);
+                paneDatabaseError(e);
             }
         } else {
-            JOptionPane.showMessageDialog(this, "This action requires logging in!", "Error", JOptionPane.ERROR_MESSAGE);
+            paneNotLoggedIn();
         }
     }
 
@@ -356,12 +365,12 @@ public class PageDeliver extends javax.swing.JPanel {
         }
 
         private void checkFields() {
-            String product_name = fieldName.getText().trim();
             String product_price = fieldPrice.getText().trim();
             String product_quantity = fieldQuantity.getText().trim();
+            Object selected_product = comboName.getSelectedItem();
 
-            boolean isValid = !product_name.isEmpty()
-                    && !product_name.equals("Enter Product Name")
+            boolean isValid = selected_product != null
+                    && !selected_product.toString().isEmpty()
                     && !product_price.isEmpty()
                     && !product_price.equals("Enter Price")
                     && !product_quantity.isEmpty()
@@ -575,14 +584,6 @@ public class PageDeliver extends javax.swing.JPanel {
         fieldDOD.setBorder(null);
         fieldDOD.setCursor(new java.awt.Cursor(java.awt.Cursor.TEXT_CURSOR));
         fieldDOD.setFocusable(false);
-        fieldDOD.addFocusListener(new java.awt.event.FocusAdapter() {
-            public void focusGained(java.awt.event.FocusEvent evt) {
-                fieldDODFocusGained(evt);
-            }
-            public void focusLost(java.awt.event.FocusEvent evt) {
-                fieldDODFocusLost(evt);
-            }
-        });
 
         btnDOD.setText("...");
         btnDOD.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
@@ -599,14 +600,6 @@ public class PageDeliver extends javax.swing.JPanel {
         fieldDOE.setBorder(null);
         fieldDOE.setCursor(new java.awt.Cursor(java.awt.Cursor.TEXT_CURSOR));
         fieldDOE.setFocusable(false);
-        fieldDOE.addFocusListener(new java.awt.event.FocusAdapter() {
-            public void focusGained(java.awt.event.FocusEvent evt) {
-                fieldDOEFocusGained(evt);
-            }
-            public void focusLost(java.awt.event.FocusEvent evt) {
-                fieldDOEFocusLost(evt);
-            }
-        });
 
         btnDOE.setText("...");
         btnDOE.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
@@ -687,7 +680,7 @@ public class PageDeliver extends javax.swing.JPanel {
                 .addGroup(panelButtonsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(btnUpdateProduct)
                     .addComponent(btnDeleteProduct))
-                .addContainerGap(34, Short.MAX_VALUE))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
         javax.swing.GroupLayout panelMainLayout = new javax.swing.GroupLayout(panelMain);
@@ -746,10 +739,10 @@ public class PageDeliver extends javax.swing.JPanel {
             .addGroup(panelMainLayout.createSequentialGroup()
                 .addGroup(panelMainLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(panelMainLayout.createSequentialGroup()
-                        .addGap(25, 25, 25)
+                        .addGap(23, 23, 23)
                         .addComponent(btnImage, javax.swing.GroupLayout.PREFERRED_SIZE, 115, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(58, 58, 58)
-                        .addComponent(labelImgIcon, javax.swing.GroupLayout.PREFERRED_SIZE, 124, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addGap(49, 49, 49)
+                        .addComponent(labelImgIcon, javax.swing.GroupLayout.PREFERRED_SIZE, 150, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addComponent(panelButtons, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
@@ -808,12 +801,13 @@ public class PageDeliver extends javax.swing.JPanel {
                 .addComponent(separatorDOE, javax.swing.GroupLayout.PREFERRED_SIZE, 10, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGroup(panelMainLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(panelMainLayout.createSequentialGroup()
-                        .addGap(54, 54, 54)
-                        .addComponent(btnImage))
-                    .addGroup(panelMainLayout.createSequentialGroup()
+                        .addGap(75, 75, 75)
+                        .addComponent(btnImage)
+                        .addGap(87, 87, 87))
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, panelMainLayout.createSequentialGroup()
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(labelImgIcon, javax.swing.GroupLayout.PREFERRED_SIZE, 124, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(labelImgIcon, javax.swing.GroupLayout.PREFERRED_SIZE, 150, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(18, 18, 18)))
                 .addComponent(panelButtons, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap())
         );
@@ -925,62 +919,28 @@ public class PageDeliver extends javax.swing.JPanel {
     }// </editor-fold>//GEN-END:initComponents
 
     private void fieldNameFocusGained(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_fieldNameFocusGained
-        if (fieldName.getText().equals("Enter Product Name")) {
-            fieldName.setText("");
-            fieldName.setForeground(new Color(0, 0, 0));
-        }
+        WindowUtils.setDefaultField(fieldName, "Enter Product Name", WindowUtils.FieldFocus.GAINED, Color.BLACK);
     }//GEN-LAST:event_fieldNameFocusGained
 
     private void fieldNameFocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_fieldNameFocusLost
-        if (fieldName.getText().equals("")) {
-            fieldName.setText("Enter Product Name");
-            fieldName.setForeground(new Color(153, 153, 153));
-        }
+        WindowUtils.setDefaultField(fieldName, "Enter Product Name", WindowUtils.FieldFocus.LOST, Color.BLACK);
     }//GEN-LAST:event_fieldNameFocusLost
 
     private void fieldPriceFocusGained(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_fieldPriceFocusGained
-        if (fieldPrice.getText().equals("Enter Price")) {
-            fieldPrice.setText("");
-            fieldPrice.setForeground(new Color(0, 0, 0));
-        }
+        WindowUtils.setDefaultField(fieldPrice, "Enter Price", WindowUtils.FieldFocus.GAINED, Color.BLACK);
     }//GEN-LAST:event_fieldPriceFocusGained
 
     private void fieldPriceFocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_fieldPriceFocusLost
-        if (fieldPrice.getText().equals("")) {
-            fieldPrice.setText("Enter Price");
-            fieldPrice.setForeground(new Color(153, 153, 153));
-        }
+        WindowUtils.setDefaultField(fieldPrice, "Enter Price", WindowUtils.FieldFocus.LOST, Color.BLACK);
     }//GEN-LAST:event_fieldPriceFocusLost
 
     private void fieldQuantityFocusGained(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_fieldQuantityFocusGained
-        if (fieldQuantity.getText().equals("Enter Quantity")) {
-            fieldQuantity.setText("");
-            fieldQuantity.setForeground(new Color(0, 0, 0));
-        }
+        WindowUtils.setDefaultField(fieldQuantity, "Enter Quantity", WindowUtils.FieldFocus.GAINED, Color.BLACK);
     }//GEN-LAST:event_fieldQuantityFocusGained
 
     private void fieldQuantityFocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_fieldQuantityFocusLost
-        if (fieldQuantity.getText().equals("")) {
-            fieldQuantity.setText("Enter Quantity");
-            fieldQuantity.setForeground(new Color(153, 153, 153));
-        }
+        WindowUtils.setDefaultField(fieldQuantity, "Enter Quantity", WindowUtils.FieldFocus.LOST, Color.BLACK);
     }//GEN-LAST:event_fieldQuantityFocusLost
-
-    private void fieldDODFocusGained(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_fieldDODFocusGained
-        // TODO add your handling code here:
-    }//GEN-LAST:event_fieldDODFocusGained
-
-    private void fieldDODFocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_fieldDODFocusLost
-        // TODO add your handling code here:
-    }//GEN-LAST:event_fieldDODFocusLost
-
-    private void fieldDOEFocusGained(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_fieldDOEFocusGained
-        // TODO add your handling code here:
-    }//GEN-LAST:event_fieldDOEFocusGained
-
-    private void fieldDOEFocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_fieldDOEFocusLost
-        // TODO add your handling code here:
-    }//GEN-LAST:event_fieldDOEFocusLost
 
     private void btnDODActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnDODActionPerformed
         dateDOD.showPopup();
@@ -1015,7 +975,7 @@ public class PageDeliver extends javax.swing.JPanel {
     }//GEN-LAST:event_fieldQuantityKeyTyped
 
     private void btnAddProductActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnAddProductActionPerformed
-        if (imgPath != null) {
+        if (imgPath != null || labelImgIcon.getIcon() != null) {
             try {
                 addProduct();
             } catch (FileNotFoundException ex) {
@@ -1036,6 +996,7 @@ public class PageDeliver extends javax.swing.JPanel {
 
     private void btnClearProductActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnClearProductActionPerformed
         clearFields();
+        tableProduct.getSelectionModel().clearSelection();
     }//GEN-LAST:event_btnClearProductActionPerformed
 
     private void btnImageActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnImageActionPerformed
@@ -1133,7 +1094,7 @@ public class PageDeliver extends javax.swing.JPanel {
                 endDate = LocalDate.parse(endDateString);
 
                 if (startDate.isBefore(endDate) || startDate.equals(endDate)) {
-                    query = "SELECT * FROM " + tbName_Product + " WHERE product_deliveryDate >= '" 
+                    query = "SELECT * FROM " + tbName_Product + " WHERE product_deliveryDate >= '"
                             + startDate + "' AND product_expirationDate <= '" + endDate + "'";
                     refreshTableStock(tableProduct, query);
                 } else {

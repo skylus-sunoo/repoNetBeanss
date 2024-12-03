@@ -61,6 +61,9 @@ public class Main extends javax.swing.JFrame {
                     setForm(PageDeliver);
                     break;
                 case 3:
+                    PageCatalogs.refreshTableCategories();
+                    PageCatalogs.refreshTableProducts();
+                    PageCatalogs.repopulateCategoryComboBox();
                     setForm(PageCatalogs);
                     break;
                 case 4:
@@ -90,7 +93,7 @@ public class Main extends javax.swing.JFrame {
             }
         }); // every possible pages
         
-//        setAdmin(true);
+        setAdmin(true);
     }
     
     private void setAdmin(boolean admin){
