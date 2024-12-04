@@ -54,6 +54,14 @@ public class WindowUtils {
         button.setIcon(transparentIcon);
     }
 
+    public static void enforceDigits(KeyEvent evt) {
+        char c = evt.getKeyChar();
+
+        if (!Character.isDigit(c) && c != '.' && c != KeyEvent.VK_BACK_SPACE) {
+            evt.consume();
+        }
+    }
+
     /**
      * Initializes the dragging behavior for a JFrame using a JLabel as the drag
      * handle.

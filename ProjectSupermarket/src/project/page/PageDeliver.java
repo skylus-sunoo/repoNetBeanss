@@ -1,19 +1,10 @@
 package project.page;
 
 import java.awt.Color;
-import java.awt.Graphics2D;
-import java.awt.Image;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
-import java.awt.image.BufferedImage;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
@@ -21,18 +12,13 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.imageio.ImageIO;
-import javax.swing.ImageIcon;
 import javax.swing.JComponent;
-import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 import javax.swing.JTable;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.event.ListSelectionEvent;
-import javax.swing.filechooser.FileNameExtensionFilter;
 import project.Main;
-import static project.Main.tbName_Product;
 import project.Queries;
 import project.TableUtils;
 import static project.TableUtils.refreshTableStock;
@@ -40,7 +26,6 @@ import static project.TableUtils.refreshTableStockAll;
 import static project.MainUtils.*;
 import project.WindowUtils;
 import project.search.*;
-import project.swing.ImageRenderer;
 
 /**
  *
@@ -48,11 +33,11 @@ import project.swing.ImageRenderer;
  */
 public class PageDeliver extends javax.swing.JPanel {
 
-    String imgPath = null;
-
     // Pages
     private final SearchEmpty SearchEmpty = new SearchEmpty();
     private final SearchCategory SearchCategory = new SearchCategory();
+    private final SearchBrand SearchBrand = new SearchBrand();
+    private final SearchCategoryBrand SearchCategoryBrand = new SearchCategoryBrand();
     private final SearchDeliveryDateSingle SearchDeliveryDateSingle = new SearchDeliveryDateSingle();
     private final SearchDeliveryDateBetween SearchDeliveryDateBetween = new SearchDeliveryDateBetween();
 
@@ -61,7 +46,7 @@ public class PageDeliver extends javax.swing.JPanel {
      */
     public PageDeliver() {
         initComponents();
-        WindowUtils.setTransparentFrame(fieldName, fieldPrice, fieldQuantity, fieldTotalPrice, fieldDOD, fieldDOE);
+        WindowUtils.setTransparentFrame(fieldName, fieldPrice, fieldQuantity, fieldTotalPrice, fieldDOD);
 
         setForm(SearchEmpty);
 
@@ -70,16 +55,14 @@ public class PageDeliver extends javax.swing.JPanel {
         fieldQuantity.getDocument().addDocumentListener(new PageDeliver.FieldChangeListener());
 
         tableProduct.getColumnModel().getColumn(0).setPreferredWidth(40);
-        tableProduct.getColumnModel().getColumn(1).setPreferredWidth(175);
-        tableProduct.getColumnModel().getColumn(2).setPreferredWidth(200);
-        tableProduct.getColumnModel().getColumn(3).setPreferredWidth(80);
+        tableProduct.getColumnModel().getColumn(1).setPreferredWidth(125);
+        tableProduct.getColumnModel().getColumn(2).setPreferredWidth(125);
+        tableProduct.getColumnModel().getColumn(3).setPreferredWidth(200);
         tableProduct.getColumnModel().getColumn(4).setPreferredWidth(80);
+        tableProduct.getColumnModel().getColumn(5).setPreferredWidth(80);
         tableProduct.getColumnModel().getColumn(6).setPreferredWidth(100);
         tableProduct.getColumnModel().getColumn(7).setPreferredWidth(100);
-        tableProduct.getColumnModel().getColumn(8).setPreferredWidth(100);
-        tableProduct.getColumnModel().getColumn(9).setPreferredWidth(150);
-        tableProduct.getColumnModel().getColumn(9).setCellRenderer(new ImageRenderer());
-        tableProduct.getColumnModel().getColumn(10).setPreferredWidth(150);
+        tableProduct.getColumnModel().getColumn(8).setPreferredWidth(120);
         tableProduct.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
         tableProduct.isCellEditable(ERROR, WIDTH);
         TableUtils.refreshTableStockAll(tableProduct);
@@ -101,38 +84,37 @@ public class PageDeliver extends javax.swing.JPanel {
         panelSearch.repaint();
         panelSearch.revalidate();
 
-        if (com instanceof SearchCategory searchCategory) {
-            searchCategory.repopulateComboBox();
+        switch (com) {
+            case SearchCategory searchCategory -> searchCategory.repopulateComboBox();
+            case SearchBrand searchBrand -> searchBrand.repopulateComboBox();
+            case SearchCategoryBrand searchCategoryBrand -> searchCategoryBrand.repopulateComboBox();
+            default -> {
+            }
         }
     }
 
     public void selectTableStock(int selectedRow) {
         String id = (String) tableProduct.getValueAt(selectedRow, 0);
         String category = (String) tableProduct.getValueAt(selectedRow, 1);
-        String name = (String) tableProduct.getValueAt(selectedRow, 2);
-        String price = (String) tableProduct.getValueAt(selectedRow, 3);
-        String quantity = (String) tableProduct.getValueAt(selectedRow, 4);
-        String uom = (String) tableProduct.getValueAt(selectedRow, 6);
+        String brand = (String) tableProduct.getValueAt(selectedRow, 2);
+        String name = (String) tableProduct.getValueAt(selectedRow, 3);
+        String price = (String) tableProduct.getValueAt(selectedRow, 4);
+        String quantity = (String) tableProduct.getValueAt(selectedRow, 5);
         String dod = (String) tableProduct.getValueAt(selectedRow, 7);
         String doe = (String) tableProduct.getValueAt(selectedRow, 8);
-        ImageIcon imgIcon = (ImageIcon) tableProduct.getValueAt(selectedRow, 9);
 
         fieldID.setText(id);
         comboCategory.setSelectedItem(category);
+        comboBrand.setSelectedItem(brand);
         fieldName.setText(name);
         fieldPrice.setText(price);
         fieldQuantity.setText(quantity);
         calculateTotalPrice();
-        comboUOM.setSelectedItem(uom);
         fieldDOD.setText(dod);
-        fieldDOE.setText(doe);
 
         fieldName.setForeground(new Color(0, 0, 0));
         fieldPrice.setForeground(new Color(0, 0, 0));
         fieldQuantity.setForeground(new Color(0, 0, 0));
-
-        ImageIcon resizedIcon = ResizeImage(imgIcon);
-        labelImgIcon.setIcon(resizedIcon);
 
         setUpdateDeleteEnable();
     }
@@ -141,6 +123,7 @@ public class PageDeliver extends javax.swing.JPanel {
         fieldID.setText("");
         setUpdateDeleteEnable();
         comboCategory.setSelectedIndex(0);
+        comboBrand.setSelectedIndex(0);
         fieldName.setText("Enter Product Name");
         fieldName.setForeground(new Color(153, 153, 153));
         fieldPrice.setText("Enter Price");
@@ -149,88 +132,43 @@ public class PageDeliver extends javax.swing.JPanel {
         fieldQuantity.setForeground(new Color(153, 153, 153));
         fieldTotalPrice.setText("Total Price");
         fieldTotalPrice.setForeground(new Color(153, 153, 153));
-        comboUOM.setSelectedIndex(0);
         LocalDate currentDate = LocalDate.now();
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
         String formattedDate = currentDate.format(formatter);
         fieldDOD.setText(formattedDate);
-        fieldDOE.setText(formattedDate);
-
-        imgPath = null;
-        labelImgIcon.setIcon(null);
     }
 
     public void addProduct() throws FileNotFoundException {
         if (isLoggedIn()) {
             String product_category = comboCategory.getSelectedItem().toString();
+            String product_brand = comboBrand.getSelectedItem().toString();
             String product_name = comboName.getSelectedItem().toString();
             String product_price = fieldPrice.getText();
             String product_quantity = fieldQuantity.getText();
-            String product_uom = comboUOM.getSelectedItem().toString();
             String product_deliveryDate = fieldDOD.getText();
-            String product_expirationDate = fieldDOE.getText();
 
             String employee_id = String.valueOf(project.Main.getUserSessionID());
 
-            LocalDate date1 = LocalDate.parse(product_deliveryDate);
-            LocalDate date2 = LocalDate.parse(product_expirationDate);
-            boolean isValidExpiration = false;
+            String query = "INSERT INTO " + Main.tbName_ProductStock + " (product_category, product_brand, product_name, product_price, product_quantity, product_deliveryDate, employee_id)\n"
+                    + "VALUES (?, ?, ?, ?, ?, ?, ?)";
 
-            if (date1.isBefore(date2)) {
-                isValidExpiration = true;
-            }
+            try (Connection conn = Queries.getConnection(Main.dbName);) {
+                PreparedStatement pst = conn.prepareStatement(query);
+                pst.setString(1, product_category);
+                pst.setString(2, product_brand);
+                pst.setString(3, product_name);
+                pst.setString(4, product_price);
+                pst.setString(5, product_quantity);
+                pst.setString(6, product_deliveryDate);
+                pst.setString(7, employee_id);
+                pst.executeUpdate();
 
-            if (isValidExpiration) {
-                String query = "INSERT INTO " + tbName_Product + " (product_category, product_name, product_price, product_quantity, product_uom, product_deliveryDate, product_expirationDate, product_image, employee_id)\n"
-                        + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                clearFields();
+                TableUtils.refreshTableStockAll(tableProduct);
 
-                try (Connection conn = Queries.getConnection(Main.dbName);) {
-                    PreparedStatement pst = conn.prepareStatement(query);
-                    pst.setString(1, product_category);
-                    pst.setString(2, product_name);
-                    pst.setString(3, product_price);
-                    pst.setString(4, product_quantity);
-                    pst.setString(5, product_uom);
-                    pst.setString(6, product_deliveryDate);
-                    pst.setString(7, product_expirationDate);
-
-                    if (labelImgIcon.getIcon() == null) {
-                        InputStream img = new FileInputStream(new File(imgPath));
-                        pst.setBlob(8, img);
-                    } else {
-                        ImageIcon icon = (ImageIcon) labelImgIcon.getIcon();
-                        Image image = icon.getImage();
-
-                        BufferedImage bufferedImage = new BufferedImage(image.getWidth(null), image.getHeight(null), BufferedImage.TYPE_INT_ARGB);
-                        Graphics2D g2d = bufferedImage.createGraphics();
-                        g2d.drawImage(image, 0, 0, null);
-                        g2d.dispose();
-
-                        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-                        try {
-                            ImageIO.write(bufferedImage, "png", byteArrayOutputStream);
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
-
-                        byte[] imageBytes = byteArrayOutputStream.toByteArray();
-                        InputStream img = new ByteArrayInputStream(imageBytes);
-
-                        pst.setBlob(8, img);
-                    }
-
-                    pst.setString(9, employee_id);
-                    pst.executeUpdate();
-
-                    clearFields();
-                    TableUtils.refreshTableStockAll(tableProduct);
-
-                    JOptionPane.showMessageDialog(this, "Product Added!", "Success", JOptionPane.INFORMATION_MESSAGE);
-                } catch (SQLException e) {
-                    paneDatabaseError(e);
-                }
-            } else {
-                JOptionPane.showMessageDialog(this, "Expiration Date must not be the same as or before the Delivery Date!", "Error", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(this, "Product Added!", "Success", JOptionPane.INFORMATION_MESSAGE);
+            } catch (SQLException e) {
+                paneDatabaseError(e);
             }
         } else {
             paneNotLoggedIn();
@@ -239,72 +177,35 @@ public class PageDeliver extends javax.swing.JPanel {
 
     public void updateProduct() {
         if (isLoggedIn()) {
-            String path = imgPath;
-
             int id = Integer.parseInt(fieldID.getText());
             String product_category = comboCategory.getSelectedItem().toString();
+            String product_brand = comboBrand.getSelectedItem().toString();
             String product_name = comboName.getSelectedItem().toString();
             String product_price = fieldPrice.getText();
             String product_quantity = fieldQuantity.getText();
-            String product_uom = comboUOM.getSelectedItem().toString();
             String product_deliveryDate = fieldDOD.getText();
-            String product_expirationDate = fieldDOE.getText();
 
             String employee_id = String.valueOf(project.Main.getUserSessionID());
+            
+            String query = "UPDATE " + Main.tbName_ProductStock + " SET product_category = ?, product_brand = ?, product_name = ?, product_price = ?, product_quantity = ?, product_deliveryDate = ?, employee_id = ? WHERE product_ID = ?";
 
-            LocalDate date1 = LocalDate.parse(product_deliveryDate);
-            LocalDate date2 = LocalDate.parse(product_expirationDate);
-            boolean isValidExpiration = false;
+            try (Connection conn = Queries.getConnection(Main.dbName);) {
+                PreparedStatement pst = conn.prepareStatement(query);
+                pst.setString(1, product_category);
+                pst.setString(2, product_brand);
+                pst.setString(3, product_name);
+                pst.setString(4, product_price);
+                pst.setString(5, product_quantity);
+                pst.setString(6, product_deliveryDate);
+                pst.setString(7, employee_id);
+                pst.setInt(8, id);
+                pst.executeUpdate();
+                JOptionPane.showMessageDialog(this, "Product Updated!", "Success", JOptionPane.INFORMATION_MESSAGE);
 
-            if (date1.isBefore(date2)) {
-                isValidExpiration = true;
-            }
-
-            if (isValidExpiration) {
-                String query = "UPDATE " + tbName_Product + " SET product_category = ?, product_name = ?, product_price = ?, product_quantity = ?, product_uom = ?, product_deliveryDate = ?, product_expirationDate = ?, employee_id = ? WHERE product_ID = ?";
-
-                try (Connection conn = Queries.getConnection(Main.dbName);) {
-                    PreparedStatement pst = conn.prepareStatement(query);
-                    pst.setString(1, product_category);
-                    pst.setString(2, product_name);
-                    pst.setString(3, product_price);
-                    pst.setString(4, product_quantity);
-                    pst.setString(5, product_uom);
-                    pst.setString(6, product_deliveryDate);
-                    pst.setString(7, product_expirationDate);
-                    pst.setString(8, employee_id);
-                    pst.setInt(9, id);
-                    pst.executeUpdate();
-                    JOptionPane.showMessageDialog(this, "Product Updated!", "Success", JOptionPane.INFORMATION_MESSAGE);
-
-                    clearFields();
-                    TableUtils.refreshTableStockAll(tableProduct);
-                } catch (SQLException e) {
-                    paneDatabaseError(e);
-                }
-
-                if (path != null) {
-                    try {
-                        InputStream img = new FileInputStream(new File(path));
-                        query = "UPDATE " + tbName_Product + " SET product_image = ? WHERE product_ID = ?";
-
-                        try (Connection conn = Queries.getConnection(Main.dbName);) {
-                            PreparedStatement pst = conn.prepareStatement(query);
-                            pst.setBlob(1, img);
-                            pst.setInt(2, id);
-                            pst.executeUpdate();
-
-                            clearFields();
-                            TableUtils.refreshTableStockAll(tableProduct);
-                        } catch (SQLException e) {
-                            paneDatabaseError(e);
-                        }
-                    } catch (Exception ex) {
-                        JOptionPane.showMessageDialog(null, ex.getMessage());
-                    }
-                }
-            } else {
-                JOptionPane.showMessageDialog(this, "Expiration Date must not be the same as or before the Delivery Date!", "Error", JOptionPane.ERROR_MESSAGE);
+                clearFields();
+                TableUtils.refreshTableStockAll(tableProduct);
+            } catch (SQLException e) {
+                paneDatabaseError(e);
             }
         } else {
             paneNotLoggedIn();
@@ -314,7 +215,7 @@ public class PageDeliver extends javax.swing.JPanel {
     public void deleteProduct() {
         if (isLoggedIn()) {
             int id = Integer.parseInt(fieldID.getText());
-            String query = "DELETE FROM " + tbName_Product + " WHERE product_ID = ?";
+            String query = "DELETE FROM " + Main.tbName_ProductStock + " WHERE product_ID = ?";
 
             try (Connection conn = Queries.getConnection(Main.dbName);) {
                 PreparedStatement pst = conn.prepareStatement(query);
@@ -410,7 +311,6 @@ public class PageDeliver extends javax.swing.JPanel {
     private void initComponents() {
 
         dateDOD = new project.date.DateChooser();
-        dateDOE = new project.date.DateChooser();
         fieldID = new javax.swing.JTextField();
         jProgressBar1 = new javax.swing.JProgressBar();
         fieldName = new javax.swing.JTextField();
@@ -431,36 +331,27 @@ public class PageDeliver extends javax.swing.JPanel {
         labelTotalPrice = new javax.swing.JLabel();
         fieldTotalPrice = new javax.swing.JTextField();
         separatorTotalPrice = new javax.swing.JSeparator();
-        labelTotalPriceUOM = new javax.swing.JLabel();
-        comboUOM = new javax.swing.JComboBox<>();
-        separatorPriceUOM = new javax.swing.JSeparator();
+        labelBrand = new javax.swing.JLabel();
+        comboBrand = new javax.swing.JComboBox<>();
+        separatorBrand = new javax.swing.JSeparator();
         labelDOD = new javax.swing.JLabel();
         fieldDOD = new javax.swing.JTextField();
         btnDOD = new javax.swing.JButton();
         separatorDOD = new javax.swing.JSeparator();
-        labelDOE = new javax.swing.JLabel();
-        fieldDOE = new javax.swing.JTextField();
-        separatorDOE = new javax.swing.JSeparator();
-        btnDOE = new javax.swing.JButton();
-        btnImage = new javax.swing.JButton();
-        labelImgIcon = new javax.swing.JLabel();
         panelButtons = new javax.swing.JPanel();
         btnAddProduct = new javax.swing.JButton();
         btnUpdateProduct = new javax.swing.JButton();
         btnClearProduct = new javax.swing.JButton();
         btnDeleteProduct = new javax.swing.JButton();
-        scrollProduct = new javax.swing.JScrollPane();
-        tableProduct = new project.swing.Table();
         panelSearch = new javax.swing.JPanel();
         labelSearch = new javax.swing.JLabel();
         comboSearch = new javax.swing.JComboBox<>();
         btnSearch = new javax.swing.JButton();
+        scrollProduct = new javax.swing.JScrollPane();
+        tableProduct = new project.swing.Table();
 
         dateDOD.setDateFormat("yyyy-MM-dd");
         dateDOD.setTextRefernce(fieldDOD);
-
-        dateDOE.setDateFormat("yyyy-MM-dd");
-        dateDOE.setTextRefernce(fieldDOE);
 
         fieldID.setText("jTextField1");
 
@@ -571,11 +462,16 @@ public class PageDeliver extends javax.swing.JPanel {
         fieldTotalPrice.setCursor(new java.awt.Cursor(java.awt.Cursor.DEFAULT_CURSOR));
         fieldTotalPrice.setFocusable(false);
 
-        labelTotalPriceUOM.setFont(new java.awt.Font("Yu Gothic UI Semibold", 0, 14)); // NOI18N
-        labelTotalPriceUOM.setText("Unit of Measure");
+        labelBrand.setFont(new java.awt.Font("Yu Gothic UI Semibold", 0, 14)); // NOI18N
+        labelBrand.setText("Brand");
 
-        comboUOM.setFont(new java.awt.Font("Yu Gothic UI Semibold", 0, 12)); // NOI18N
-        comboUOM.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "PIECES", "LITERS", "KILOGRAMS" }));
+        comboBrand.setFont(new java.awt.Font("Yu Gothic UI Semibold", 0, 12)); // NOI18N
+        comboBrand.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "PIECES", "LITERS", "KILOGRAMS" }));
+        comboBrand.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                comboBrandActionPerformed(evt);
+            }
+        });
 
         labelDOD.setFont(new java.awt.Font("Yu Gothic UI Semibold", 0, 14)); // NOI18N
         labelDOD.setText("Date of Delivery");
@@ -590,30 +486,6 @@ public class PageDeliver extends javax.swing.JPanel {
         btnDOD.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 btnDODActionPerformed(evt);
-            }
-        });
-
-        labelDOE.setFont(new java.awt.Font("Yu Gothic UI Semibold", 0, 14)); // NOI18N
-        labelDOE.setText("Date of Expiry");
-
-        fieldDOE.setFont(new java.awt.Font("Yu Gothic UI Semibold", 0, 12)); // NOI18N
-        fieldDOE.setBorder(null);
-        fieldDOE.setCursor(new java.awt.Cursor(java.awt.Cursor.TEXT_CURSOR));
-        fieldDOE.setFocusable(false);
-
-        btnDOE.setText("...");
-        btnDOE.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
-        btnDOE.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                btnDOEActionPerformed(evt);
-            }
-        });
-
-        btnImage.setText("Select Image");
-        btnImage.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
-        btnImage.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                btnImageActionPerformed(evt);
             }
         });
 
@@ -688,158 +560,133 @@ public class PageDeliver extends javax.swing.JPanel {
         panelMainLayout.setHorizontalGroup(
             panelMainLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(panelMainLayout.createSequentialGroup()
-                .addGap(8, 8, 8)
                 .addGroup(panelMainLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, panelMainLayout.createSequentialGroup()
-                        .addGroup(panelMainLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                            .addGroup(panelMainLayout.createSequentialGroup()
-                                .addGap(167, 167, 167)
-                                .addComponent(separatorName))
-                            .addGroup(panelMainLayout.createSequentialGroup()
-                                .addGroup(panelMainLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addComponent(labelName, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                    .addComponent(labelCategory, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                                .addGap(100, 100, 100)
-                                .addComponent(comboCategory, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                        .addGap(528, 528, 528))
                     .addGroup(panelMainLayout.createSequentialGroup()
-                        .addGroup(panelMainLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                            .addGroup(panelMainLayout.createSequentialGroup()
-                                .addGroup(panelMainLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                                    .addComponent(labelQuantity, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                    .addComponent(labelTotalPrice, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                    .addComponent(labelPrice, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                    .addComponent(labelTotalPriceUOM, javax.swing.GroupLayout.PREFERRED_SIZE, 130, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                    .addComponent(labelDOD, javax.swing.GroupLayout.PREFERRED_SIZE, 132, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                    .addComponent(labelDOE, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, 149, Short.MAX_VALUE))
-                                .addGap(18, 18, 18)
-                                .addGroup(panelMainLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                                    .addComponent(separatorDOD)
-                                    .addComponent(separatorPriceUOM)
-                                    .addComponent(comboUOM, 0, 177, Short.MAX_VALUE)
-                                    .addComponent(separatorTotalPrice)
-                                    .addComponent(fieldTotalPrice)
-                                    .addComponent(separatorQuantity)
-                                    .addComponent(separatorPrice)
-                                    .addComponent(fieldPrice)
-                                    .addComponent(fieldQuantity)
-                                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, panelMainLayout.createSequentialGroup()
-                                        .addComponent(fieldDOD)
-                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                        .addComponent(btnDOD))
-                                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, panelMainLayout.createSequentialGroup()
-                                        .addComponent(fieldDOE)
-                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                        .addComponent(btnDOE))
-                                    .addComponent(separatorDOE)))
-                            .addGroup(panelMainLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                                .addComponent(comboName, javax.swing.GroupLayout.Alignment.TRAILING, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                .addComponent(separatorCategory, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, 177, Short.MAX_VALUE)))
-                        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
+                        .addGap(175, 175, 175)
+                        .addComponent(separatorCategory, javax.swing.GroupLayout.PREFERRED_SIZE, 177, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(panelMainLayout.createSequentialGroup()
+                        .addGap(175, 175, 175)
+                        .addComponent(separatorBrand, javax.swing.GroupLayout.PREFERRED_SIZE, 177, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(panelMainLayout.createSequentialGroup()
+                        .addGap(175, 175, 175)
+                        .addComponent(separatorName, javax.swing.GroupLayout.PREFERRED_SIZE, 177, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(panelMainLayout.createSequentialGroup()
+                        .addGap(6, 6, 6)
+                        .addComponent(labelPrice, javax.swing.GroupLayout.PREFERRED_SIZE, 163, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(6, 6, 6)
+                        .addComponent(fieldPrice, javax.swing.GroupLayout.PREFERRED_SIZE, 177, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(panelMainLayout.createSequentialGroup()
+                        .addGap(175, 175, 175)
+                        .addComponent(separatorPrice, javax.swing.GroupLayout.PREFERRED_SIZE, 177, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(panelMainLayout.createSequentialGroup()
+                        .addGap(6, 6, 6)
+                        .addComponent(labelQuantity, javax.swing.GroupLayout.PREFERRED_SIZE, 163, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(6, 6, 6)
+                        .addComponent(fieldQuantity, javax.swing.GroupLayout.PREFERRED_SIZE, 177, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(panelMainLayout.createSequentialGroup()
+                        .addGap(175, 175, 175)
+                        .addComponent(separatorQuantity, javax.swing.GroupLayout.PREFERRED_SIZE, 177, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(panelMainLayout.createSequentialGroup()
+                        .addGap(6, 6, 6)
+                        .addComponent(labelTotalPrice, javax.swing.GroupLayout.PREFERRED_SIZE, 157, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(12, 12, 12)
+                        .addComponent(fieldTotalPrice, javax.swing.GroupLayout.PREFERRED_SIZE, 177, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(panelMainLayout.createSequentialGroup()
+                        .addGap(175, 175, 175)
+                        .addComponent(separatorTotalPrice, javax.swing.GroupLayout.PREFERRED_SIZE, 177, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(panelMainLayout.createSequentialGroup()
+                        .addGap(6, 6, 6)
+                        .addComponent(labelDOD, javax.swing.GroupLayout.PREFERRED_SIZE, 163, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(fieldDOD, javax.swing.GroupLayout.PREFERRED_SIZE, 136, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(btnDOD))
+                    .addGroup(panelMainLayout.createSequentialGroup()
+                        .addGap(175, 175, 175)
+                        .addComponent(separatorDOD, javax.swing.GroupLayout.PREFERRED_SIZE, 177, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(panelButtons, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(0, 0, Short.MAX_VALUE))
             .addGroup(panelMainLayout.createSequentialGroup()
                 .addGroup(panelMainLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(panelMainLayout.createSequentialGroup()
-                        .addGap(23, 23, 23)
-                        .addComponent(btnImage, javax.swing.GroupLayout.PREFERRED_SIZE, 115, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(49, 49, 49)
-                        .addComponent(labelImgIcon, javax.swing.GroupLayout.PREFERRED_SIZE, 150, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addComponent(panelButtons, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                        .addGap(8, 8, 8)
+                        .addComponent(labelCategory, javax.swing.GroupLayout.PREFERRED_SIZE, 161, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(comboCategory, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                    .addGroup(panelMainLayout.createSequentialGroup()
+                        .addGap(6, 6, 6)
+                        .addComponent(labelName, javax.swing.GroupLayout.PREFERRED_SIZE, 163, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(comboName, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                    .addGroup(panelMainLayout.createSequentialGroup()
+                        .addGap(8, 8, 8)
+                        .addComponent(labelBrand, javax.swing.GroupLayout.PREFERRED_SIZE, 161, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(comboBrand, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
+                .addContainerGap())
         );
         panelMainLayout.setVerticalGroup(
             panelMainLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(panelMainLayout.createSequentialGroup()
                 .addGap(6, 6, 6)
-                .addGroup(panelMainLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                .addGroup(panelMainLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(labelCategory, javax.swing.GroupLayout.PREFERRED_SIZE, 22, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(comboCategory, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(panelMainLayout.createSequentialGroup()
+                        .addGap(1, 1, 1)
+                        .addComponent(comboCategory, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
                 .addGap(5, 5, 5)
                 .addComponent(separatorCategory, javax.swing.GroupLayout.PREFERRED_SIZE, 10, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(5, 5, 5)
-                .addGroup(panelMainLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                .addGap(6, 6, 6)
+                .addGroup(panelMainLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(labelBrand, javax.swing.GroupLayout.PREFERRED_SIZE, 22, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addGroup(panelMainLayout.createSequentialGroup()
+                        .addGap(1, 1, 1)
+                        .addComponent(comboBrand, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                .addGap(6, 6, 6)
+                .addComponent(separatorBrand, javax.swing.GroupLayout.PREFERRED_SIZE, 10, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(6, 6, 6)
+                .addGroup(panelMainLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(labelName, javax.swing.GroupLayout.PREFERRED_SIZE, 22, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(comboName, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(panelMainLayout.createSequentialGroup()
+                        .addGap(1, 1, 1)
+                        .addComponent(comboName, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
                 .addGap(6, 6, 6)
                 .addComponent(separatorName, javax.swing.GroupLayout.PREFERRED_SIZE, 10, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(5, 5, 5)
-                .addGroup(panelMainLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(labelPrice, javax.swing.GroupLayout.PREFERRED_SIZE, 22, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(fieldPrice, javax.swing.GroupLayout.PREFERRED_SIZE, 22, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(separatorPrice, javax.swing.GroupLayout.PREFERRED_SIZE, 10, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(panelMainLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(labelQuantity, javax.swing.GroupLayout.PREFERRED_SIZE, 22, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(fieldQuantity, javax.swing.GroupLayout.PREFERRED_SIZE, 22, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(separatorQuantity, javax.swing.GroupLayout.PREFERRED_SIZE, 10, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(panelMainLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                    .addComponent(fieldTotalPrice, javax.swing.GroupLayout.PREFERRED_SIZE, 22, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(labelTotalPrice, javax.swing.GroupLayout.PREFERRED_SIZE, 22, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(separatorTotalPrice, javax.swing.GroupLayout.PREFERRED_SIZE, 10, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(panelMainLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(labelTotalPriceUOM, javax.swing.GroupLayout.PREFERRED_SIZE, 22, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(comboUOM, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(separatorPriceUOM, javax.swing.GroupLayout.PREFERRED_SIZE, 10, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(panelMainLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(labelDOD, javax.swing.GroupLayout.PREFERRED_SIZE, 22, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(fieldDOD, javax.swing.GroupLayout.PREFERRED_SIZE, 22, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(btnDOD))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(separatorDOD, javax.swing.GroupLayout.PREFERRED_SIZE, 10, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(panelMainLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(fieldDOE, javax.swing.GroupLayout.PREFERRED_SIZE, 22, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(btnDOE)
-                    .addComponent(labelDOE, javax.swing.GroupLayout.PREFERRED_SIZE, 22, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(7, 7, 7)
-                .addComponent(separatorDOE, javax.swing.GroupLayout.PREFERRED_SIZE, 10, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(6, 6, 6)
                 .addGroup(panelMainLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(labelPrice, javax.swing.GroupLayout.PREFERRED_SIZE, 22, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addGroup(panelMainLayout.createSequentialGroup()
-                        .addGap(75, 75, 75)
-                        .addComponent(btnImage)
-                        .addGap(87, 87, 87))
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, panelMainLayout.createSequentialGroup()
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(labelImgIcon, javax.swing.GroupLayout.PREFERRED_SIZE, 150, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(18, 18, 18)))
-                .addComponent(panelButtons, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap())
+                        .addGap(1, 1, 1)
+                        .addComponent(fieldPrice, javax.swing.GroupLayout.PREFERRED_SIZE, 22, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                .addGap(6, 6, 6)
+                .addComponent(separatorPrice, javax.swing.GroupLayout.PREFERRED_SIZE, 10, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(6, 6, 6)
+                .addGroup(panelMainLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(labelQuantity, javax.swing.GroupLayout.PREFERRED_SIZE, 22, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addGroup(panelMainLayout.createSequentialGroup()
+                        .addGap(1, 1, 1)
+                        .addComponent(fieldQuantity, javax.swing.GroupLayout.PREFERRED_SIZE, 22, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                .addGap(6, 6, 6)
+                .addComponent(separatorQuantity, javax.swing.GroupLayout.PREFERRED_SIZE, 10, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(6, 6, 6)
+                .addGroup(panelMainLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(labelTotalPrice, javax.swing.GroupLayout.PREFERRED_SIZE, 22, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(fieldTotalPrice, javax.swing.GroupLayout.PREFERRED_SIZE, 22, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(6, 6, 6)
+                .addComponent(separatorTotalPrice, javax.swing.GroupLayout.PREFERRED_SIZE, 10, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(6, 6, 6)
+                .addGroup(panelMainLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(labelDOD, javax.swing.GroupLayout.PREFERRED_SIZE, 22, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addGroup(panelMainLayout.createSequentialGroup()
+                        .addGap(1, 1, 1)
+                        .addGroup(panelMainLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(fieldDOD, javax.swing.GroupLayout.PREFERRED_SIZE, 22, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(btnDOD))))
+                .addGap(6, 6, 6)
+                .addComponent(separatorDOD, javax.swing.GroupLayout.PREFERRED_SIZE, 10, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(64, 64, 64)
+                .addComponent(panelButtons, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
         );
-
-        scrollProduct.setBorder(null);
-
-        tableProduct.setModel(new javax.swing.table.DefaultTableModel(
-            new Object [][] {
-                {null, null, null, null, null, null, null, null, null, null, null},
-                {null, null, null, null, null, null, null, null, null, null, null},
-                {null, null, null, null, null, null, null, null, null, null, null},
-                {null, null, null, null, null, null, null, null, null, null, null}
-            },
-            new String [] {
-                "ID", "Category", "Name", "Price", "Quantity", "Total Price", "Unit of Measure", "Delivery Date", "Expiry Date", "Image", "Employee"
-            }
-        ));
-        tableProduct.setRowHeight(150);
-        scrollProduct.setViewportView(tableProduct);
-        if (tableProduct.getColumnModel().getColumnCount() > 0) {
-            tableProduct.getColumnModel().getColumn(0).setHeaderValue("ID");
-            tableProduct.getColumnModel().getColumn(1).setHeaderValue("Category");
-            tableProduct.getColumnModel().getColumn(2).setHeaderValue("Name");
-            tableProduct.getColumnModel().getColumn(3).setHeaderValue("Price");
-            tableProduct.getColumnModel().getColumn(4).setHeaderValue("Quantity");
-            tableProduct.getColumnModel().getColumn(5).setHeaderValue("Total Price");
-            tableProduct.getColumnModel().getColumn(6).setHeaderValue("Unit of Measure");
-            tableProduct.getColumnModel().getColumn(7).setHeaderValue("Delivery Date");
-            tableProduct.getColumnModel().getColumn(8).setHeaderValue("Expiry Date");
-            tableProduct.getColumnModel().getColumn(9).setHeaderValue("Image");
-            tableProduct.getColumnModel().getColumn(10).setHeaderValue("Employee");
-        }
 
         panelSearch.setMaximumSize(new java.awt.Dimension(520, 35));
         panelSearch.setMinimumSize(new java.awt.Dimension(520, 35));
@@ -851,7 +698,7 @@ public class PageDeliver extends javax.swing.JPanel {
         labelSearch.setText("Search for Products");
 
         comboSearch.setFont(new java.awt.Font("Yu Gothic UI Semibold", 0, 12)); // NOI18N
-        comboSearch.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Everything", "Under a Category", "Delivered after a date", "Delivered before a date", "Delivered between two dates", "Expired after a date", "Expired before a date", "Expired between two dates", "Delivered and Expired between two dates" }));
+        comboSearch.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Everything", "Under a Category", "Under a Brand", "Under a Category and Brand", "Delivered after a date", "Delivered before a date", "Delivered between two dates" }));
         comboSearch.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 comboSearchActionPerformed(evt);
@@ -864,6 +711,22 @@ public class PageDeliver extends javax.swing.JPanel {
                 btnSearchActionPerformed(evt);
             }
         });
+
+        scrollProduct.setBorder(null);
+
+        tableProduct.setModel(new javax.swing.table.DefaultTableModel(
+            new Object [][] {
+                {null, null, null, null, null, null, null, null, null},
+                {null, null, null, null, null, null, null, null, null},
+                {null, null, null, null, null, null, null, null, null},
+                {null, null, null, null, null, null, null, null, null}
+            },
+            new String [] {
+                "ID", "Category", "Brand", "Name", "Price", "Quantity", "Total Price", "Delivery Date", "Employee"
+            }
+        ));
+        tableProduct.setFont(new java.awt.Font("Yu Gothic UI Semibold", 0, 12)); // NOI18N
+        scrollProduct.setViewportView(tableProduct);
 
         javax.swing.GroupLayout panelBodyLayout = new javax.swing.GroupLayout(panelBody);
         panelBody.setLayout(panelBodyLayout);
@@ -882,8 +745,8 @@ public class PageDeliver extends javax.swing.JPanel {
                         .addComponent(btnSearch)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(panelSearch, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addComponent(scrollProduct, javax.swing.GroupLayout.PREFERRED_SIZE, 993, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addContainerGap(10, Short.MAX_VALUE))
+                    .addComponent(scrollProduct, javax.swing.GroupLayout.PREFERRED_SIZE, 991, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addContainerGap(19, Short.MAX_VALUE))
         );
         panelBodyLayout.setVerticalGroup(
             panelBodyLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -946,16 +809,8 @@ public class PageDeliver extends javax.swing.JPanel {
         dateDOD.showPopup();
     }//GEN-LAST:event_btnDODActionPerformed
 
-    private void btnDOEActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnDOEActionPerformed
-        dateDOE.showPopup();
-    }//GEN-LAST:event_btnDOEActionPerformed
-
     private void fieldPriceKeyTyped(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_fieldPriceKeyTyped
-        char c = evt.getKeyChar();
-
-        if (!Character.isDigit(c) && c != '.' && c != KeyEvent.VK_BACK_SPACE) {
-            evt.consume();
-        }
+        WindowUtils.enforceDigits(evt);
     }//GEN-LAST:event_fieldPriceKeyTyped
 
     private void fieldPriceKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_fieldPriceKeyReleased
@@ -967,22 +822,14 @@ public class PageDeliver extends javax.swing.JPanel {
     }//GEN-LAST:event_fieldQuantityKeyReleased
 
     private void fieldQuantityKeyTyped(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_fieldQuantityKeyTyped
-        char c = evt.getKeyChar();
-
-        if (!Character.isDigit(c) && c != '.' && c != KeyEvent.VK_BACK_SPACE) {
-            evt.consume();
-        }
+        WindowUtils.enforceDigits(evt);
     }//GEN-LAST:event_fieldQuantityKeyTyped
 
     private void btnAddProductActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnAddProductActionPerformed
-        if (imgPath != null || labelImgIcon.getIcon() != null) {
-            try {
-                addProduct();
-            } catch (FileNotFoundException ex) {
-                Logger.getLogger(PageDeliver.class.getName()).log(Level.SEVERE, null, ex);
-            }
-        } else {
-            JOptionPane.showMessageDialog(null, "Missing Image!", "Error", JOptionPane.ERROR_MESSAGE);
+        try {
+            addProduct();
+        } catch (FileNotFoundException ex) {
+            Logger.getLogger(PageDeliver.class.getName()).log(Level.SEVERE, null, ex);
         }
     }//GEN-LAST:event_btnAddProductActionPerformed
 
@@ -999,23 +846,10 @@ public class PageDeliver extends javax.swing.JPanel {
         tableProduct.getSelectionModel().clearSelection();
     }//GEN-LAST:event_btnClearProductActionPerformed
 
-    private void btnImageActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnImageActionPerformed
-        JFileChooser fc = new JFileChooser();
-        fc.setCurrentDirectory(new File(System.getProperty("user.home") + "/Downloads"));
-        fc.setFileFilter(new FileNameExtensionFilter("Image Files", "jpg", "png", "jpeg", "gif"));
-
-        FileNameExtensionFilter filter = new FileNameExtensionFilter("*.images", "jpg", "png");
-        fc.addChoosableFileFilter(filter);
-        int result = fc.showOpenDialog(null);
-        if (result == JFileChooser.APPROVE_OPTION) {
-            File selectedFile = fc.getSelectedFile();
-            imgPath = selectedFile.getAbsolutePath();
-            labelImgIcon.setIcon(ResizeImage(imgPath, null));
-        }
-    }//GEN-LAST:event_btnImageActionPerformed
-
     private void btnSearchActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSearchActionPerformed
         String query;
+        String selectedCategory;
+        String selectedBrand;
         String startDateString;
         String endDateString;
         LocalDate startDate;
@@ -1025,21 +859,30 @@ public class PageDeliver extends javax.swing.JPanel {
                 refreshTableStockAll(tableProduct);
                 break;
             case "Under a Category":
-                String selectedCategory = SearchCategory.getSelectedCategory();
-                refreshTableStock(tableProduct, "SELECT * FROM " + tbName_Product + " WHERE product_category = '" + selectedCategory + "'");
+                selectedCategory = SearchCategory.getSelectedCategory();
+                refreshTableStock(tableProduct, "SELECT * FROM " + Main.tbName_ProductStock + " WHERE product_category = '" + selectedCategory + "'");
+                break;
+            case "Under a Brand":
+                selectedBrand = SearchBrand.getSelectedBrand();
+                refreshTableStock(tableProduct, "SELECT * FROM " + Main.tbName_ProductStock + " WHERE product_brand = '" + selectedBrand + "'");
+                break;
+            case "Under a Category and Brand":
+                selectedCategory = SearchCategoryBrand.getSelectedCategory();
+                selectedBrand = SearchCategoryBrand.getSelectedBrand();
+                refreshTableStock(tableProduct, "SELECT * FROM " + Main.tbName_ProductStock + " WHERE product_category = '" + selectedCategory + "' AND product_brand = '" + selectedBrand + "'");
                 break;
             case "Delivered after a date":
                 startDateString = SearchDeliveryDateSingle.getFieldSearchDateStart().getText();
 
                 startDate = LocalDate.parse(startDateString);
-                query = "SELECT * FROM " + tbName_Product + " WHERE product_deliveryDate >= '" + startDate + "'";
+                query = "SELECT * FROM " + Main.tbName_ProductStock + " WHERE product_deliveryDate >= '" + startDate + "'";
                 refreshTableStock(tableProduct, query);
                 break;
             case "Delivered before a date":
                 startDateString = SearchDeliveryDateSingle.getFieldSearchDateStart().getText();
 
                 startDate = LocalDate.parse(startDateString);
-                query = "SELECT * FROM " + tbName_Product + " WHERE product_deliveryDate <= '" + startDate + "'";
+                query = "SELECT * FROM " + Main.tbName_ProductStock + " WHERE product_deliveryDate <= '" + startDate + "'";
                 refreshTableStock(tableProduct, query);
                 break;
             case "Delivered between two dates":
@@ -1050,52 +893,8 @@ public class PageDeliver extends javax.swing.JPanel {
                 endDate = LocalDate.parse(endDateString);
 
                 if (startDate.isBefore(endDate) || startDate.equals(endDate)) {
-                    query = "SELECT * FROM " + tbName_Product + " WHERE product_deliveryDate BETWEEN '"
+                    query = "SELECT * FROM " + Main.tbName_ProductStock + " WHERE product_deliveryDate BETWEEN '"
                             + startDate + "' AND '" + endDate + "'";
-                    refreshTableStock(tableProduct, query);
-                } else {
-                    JOptionPane.showMessageDialog(this, "Start Date must come before the End Date!", "Error", JOptionPane.INFORMATION_MESSAGE);
-                }
-                break;
-            case "Expired after a date":
-                startDateString = SearchDeliveryDateSingle.getFieldSearchDateStart().getText();
-
-                startDate = LocalDate.parse(startDateString);
-                query = "SELECT * FROM " + tbName_Product + " WHERE product_expirationDate >= '" + startDate + "'";
-                refreshTableStock(tableProduct, query);
-                break;
-            case "Expired before a date":
-                startDateString = SearchDeliveryDateSingle.getFieldSearchDateStart().getText();
-
-                startDate = LocalDate.parse(startDateString);
-                query = "SELECT * FROM " + tbName_Product + " WHERE product_expirationDate <= '" + startDate + "'";
-                refreshTableStock(tableProduct, query);
-                break;
-            case "Expired between two dates":
-                startDateString = SearchDeliveryDateBetween.getFieldSearchDateStart().getText();
-                endDateString = SearchDeliveryDateBetween.getFieldSearchDateEnd().getText();
-
-                startDate = LocalDate.parse(startDateString);
-                endDate = LocalDate.parse(endDateString);
-
-                if (startDate.isBefore(endDate) || startDate.equals(endDate)) {
-                    query = "SELECT * FROM " + tbName_Product + " WHERE product_expirationDate BETWEEN '"
-                            + startDate + "' AND '" + endDate + "'";
-                    refreshTableStock(tableProduct, query);
-                } else {
-                    JOptionPane.showMessageDialog(this, "Start Date must come before the End Date!", "Error", JOptionPane.INFORMATION_MESSAGE);
-                }
-                break;
-            case "Delivered and Expired between two dates":
-                startDateString = SearchDeliveryDateBetween.getFieldSearchDateStart().getText();
-                endDateString = SearchDeliveryDateBetween.getFieldSearchDateEnd().getText();
-
-                startDate = LocalDate.parse(startDateString);
-                endDate = LocalDate.parse(endDateString);
-
-                if (startDate.isBefore(endDate) || startDate.equals(endDate)) {
-                    query = "SELECT * FROM " + tbName_Product + " WHERE product_deliveryDate >= '"
-                            + startDate + "' AND product_expirationDate <= '" + endDate + "'";
                     refreshTableStock(tableProduct, query);
                 } else {
                     JOptionPane.showMessageDialog(this, "Start Date must come before the End Date!", "Error", JOptionPane.INFORMATION_MESSAGE);
@@ -1114,15 +913,17 @@ public class PageDeliver extends javax.swing.JPanel {
             case "Under a Category":
                 setForm(SearchCategory);
                 break;
+            case "Under a Brand":
+                setForm(SearchBrand);
+                break;
+            case "Under a Category and Brand":
+                setForm(SearchCategoryBrand);
+                break;
             case "Delivered after a date":
             case "Delivered before a date":
-            case "Expired after a date":
-            case "Expired before a date":
                 setForm(SearchDeliveryDateSingle);
                 break;
             case "Delivered between two dates":
-            case "Expired between two dates":
-            case "Delivered and Expired between two dates":
                 setForm(SearchDeliveryDateBetween);
                 break;
             default:
@@ -1131,78 +932,50 @@ public class PageDeliver extends javax.swing.JPanel {
     }//GEN-LAST:event_comboSearchActionPerformed
 
     private void comboCategoryActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_comboCategoryActionPerformed
-        Queries.repopulateComboBox(comboName, "product_name", "SELECT DISTINCT product_name FROM " + Main.tbName_ProductItem + " WHERE product_category = '" + comboCategory.getSelectedItem() + "'");
+        Queries.repopulateComboBox(comboBrand, "brand_name", "SELECT brand_name FROM " + Main.tbName_CategoryBrands + " WHERE product_category = '" + comboCategory.getSelectedItem() + "'");
     }//GEN-LAST:event_comboCategoryActionPerformed
 
-    public ImageIcon ResizeImage(String imgPath, byte[] pic) {
-        ImageIcon resizeImg;
-
-        if (imgPath != null) {
-            resizeImg = new ImageIcon(imgPath);
-        } else {
-            resizeImg = new ImageIcon(pic);
-        }
-
-        Image finalImg = resizeImg.getImage().getScaledInstance(labelImgIcon.getWidth(), labelImgIcon.getHeight(), Image.SCALE_SMOOTH);
-
-        return new ImageIcon(finalImg);
-    }
-
-    public ImageIcon ResizeImage(ImageIcon imgIcon) {
-        // Get the image from the ImageIcon
-        Image img = imgIcon.getImage();
-
-        // Resize the image to fit the label dimensions
-        Image finalImg = img.getScaledInstance(labelImgIcon.getWidth(), labelImgIcon.getHeight(), Image.SCALE_SMOOTH);
-
-        // Return the resized ImageIcon
-        return new ImageIcon(finalImg);
-    }
+    private void comboBrandActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_comboBrandActionPerformed
+        Queries.repopulateComboBox(comboName, "product_name", "SELECT product_name FROM " + Main.tbName_ProductItem + " WHERE product_category = '" + comboCategory.getSelectedItem() + "' AND product_brand = '" + comboBrand.getSelectedItem() + "'");
+    }//GEN-LAST:event_comboBrandActionPerformed
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnAddProduct;
     private javax.swing.JButton btnClearProduct;
     private javax.swing.JButton btnDOD;
-    private javax.swing.JButton btnDOE;
     private javax.swing.JButton btnDeleteProduct;
-    private javax.swing.JButton btnImage;
     private javax.swing.JButton btnSearch;
     private javax.swing.JButton btnUpdateProduct;
+    private javax.swing.JComboBox<String> comboBrand;
     private javax.swing.JComboBox<String> comboCategory;
     private javax.swing.JComboBox<String> comboName;
     private javax.swing.JComboBox<String> comboSearch;
-    private javax.swing.JComboBox<String> comboUOM;
     private project.date.DateChooser dateDOD;
-    private project.date.DateChooser dateDOE;
     private javax.swing.JTextField fieldDOD;
-    private javax.swing.JTextField fieldDOE;
     private javax.swing.JTextField fieldID;
     private javax.swing.JTextField fieldName;
     private javax.swing.JTextField fieldPrice;
     private javax.swing.JTextField fieldQuantity;
     private javax.swing.JTextField fieldTotalPrice;
     private javax.swing.JProgressBar jProgressBar1;
+    private javax.swing.JLabel labelBrand;
     private javax.swing.JLabel labelCategory;
     private javax.swing.JLabel labelDOD;
-    private javax.swing.JLabel labelDOE;
-    private javax.swing.JLabel labelImgIcon;
     private javax.swing.JLabel labelName;
     private javax.swing.JLabel labelPrice;
     private javax.swing.JLabel labelQuantity;
     private javax.swing.JLabel labelSearch;
     private javax.swing.JLabel labelTotalPrice;
-    private javax.swing.JLabel labelTotalPriceUOM;
     private project.component.ShadowPanel panelBody;
     private javax.swing.JPanel panelButtons;
     private javax.swing.JPanel panelMain;
     private javax.swing.JPanel panelSearch;
     private javax.swing.JScrollPane scrollProduct;
+    private javax.swing.JSeparator separatorBrand;
     private javax.swing.JSeparator separatorCategory;
     private javax.swing.JSeparator separatorDOD;
-    private javax.swing.JSeparator separatorDOE;
     private javax.swing.JSeparator separatorName;
     private javax.swing.JSeparator separatorPrice;
-    private javax.swing.JSeparator separatorPriceUOM;
     private javax.swing.JSeparator separatorQuantity;
     private javax.swing.JSeparator separatorTotalPrice;
     private project.swing.Table tableProduct;

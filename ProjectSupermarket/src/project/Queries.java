@@ -68,11 +68,12 @@ public class Queries {
             }
 
             List<String> sortedItems = new ArrayList<>(uniqueItems);
-            Collections.sort(sortedItems);
+            Collections.sort(sortedItems, String.CASE_INSENSITIVE_ORDER);
 
             comboBox.removeAllItems();
             for (String item : sortedItems) {
                 comboBox.addItem(item);
+//                System.out.println(item);
             }
 
             if (!sortedItems.isEmpty()) {

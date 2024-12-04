@@ -21,8 +21,10 @@ public class Main extends javax.swing.JFrame {
 
     public static String dbName = "DB_Supermarket";
     public static String tbName_Employee = "TB_Employee";
-    public static String tbName_Product = "TB_Product";
+    public static String tbName_CategoryBrands = "TB_CategoryBrands";
+    public static String tbName_ProductStock = "TB_ProductStock";
     public static String tbName_ProductCategory = "TB_ProductCategory";
+    public static String tbName_ProductBrand = "TB_ProductBrand";
     public static String tbName_ProductItem = "TB_ProductItems";
     private static int userSessionID = -1;
     private String userSessionName;
@@ -53,7 +55,7 @@ public class Main extends javax.swing.JFrame {
             //System.out.println("index " + index);
             switch (index) {
                 case 1:
-                    PageStock.refreshTableStockAll();
+                    PageStock.refreshTableStockDistinct();
                     setForm(PageStock);
                     break;
                 case 2:

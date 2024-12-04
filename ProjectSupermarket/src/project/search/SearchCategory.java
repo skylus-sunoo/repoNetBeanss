@@ -1,14 +1,6 @@
 package project.search;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.HashSet;
-import java.util.Set;
-import javax.swing.JOptionPane;
 import project.Main;
-import static project.Main.tbName_Product;
 import project.Queries;
 
 /**
@@ -25,7 +17,7 @@ public class SearchCategory extends javax.swing.JPanel {
     }
 
     public void repopulateComboBox() {
-        Queries.repopulateComboBox(comboCategory, "product_category", "SELECT DISTINCT product_category FROM " + Main.tbName_Product);
+        Queries.repopulateComboBox(comboCategory, "product_category", "SELECT DISTINCT product_category FROM " + Main.tbName_ProductStock);
     }
 
     public String getSelectedCategory() {

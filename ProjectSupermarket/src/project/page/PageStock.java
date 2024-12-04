@@ -16,25 +16,21 @@ public class PageStock extends javax.swing.JPanel {
     public PageStock() {
         initComponents();
 
-        tableProduct.getColumnModel().getColumn(0).setPreferredWidth(47);
-        tableProduct.getColumnModel().getColumn(1).setPreferredWidth(205);
-        tableProduct.getColumnModel().getColumn(2).setPreferredWidth(235);
-        tableProduct.getColumnModel().getColumn(3).setPreferredWidth(94);
-        tableProduct.getColumnModel().getColumn(4).setPreferredWidth(94);
-        tableProduct.getColumnModel().getColumn(6).setPreferredWidth(100);
-        tableProduct.getColumnModel().getColumn(7).setPreferredWidth(100);
-        tableProduct.getColumnModel().getColumn(8).setPreferredWidth(100);
-        tableProduct.getColumnModel().getColumn(9).setPreferredWidth(150);
-        tableProduct.getColumnModel().getColumn(9).setCellRenderer(new ImageRenderer());
-        tableProduct.getColumnModel().getColumn(10).setPreferredWidth(135);
+        tableProduct.getColumnModel().getColumn(0).setPreferredWidth(225);
+        tableProduct.getColumnModel().getColumn(1).setPreferredWidth(300);
+        tableProduct.getColumnModel().getColumn(2).setPreferredWidth(450);
+        tableProduct.getColumnModel().getColumn(3).setPreferredWidth(100);
+        tableProduct.getColumnModel().getColumn(4).setPreferredWidth(100);
+        tableProduct.getColumnModel().getColumn(5).setPreferredWidth(150);
+        tableProduct.getColumnModel().getColumn(5).setCellRenderer(new ImageRenderer());
         tableProduct.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
-        TableUtils.refreshTableStockAll(tableProduct);
+        TableUtils.refreshTableStockDistinct(tableProduct);
 
         tableProduct.setDefaultEditor(Object.class, null);
     }
 
-    public void refreshTableStockAll() {
-        TableUtils.refreshTableStockAll(tableProduct);
+    public void refreshTableStockDistinct() {
+        TableUtils.refreshTableStockDistinct(tableProduct);
     }
 
     /**
@@ -76,15 +72,16 @@ public class PageStock extends javax.swing.JPanel {
 
         tableProduct.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
-                {null, null, null, null, null, null, null, null, null, null, null},
-                {null, null, null, null, null, null, null, null, null, null, null},
-                {null, null, null, null, null, null, null, null, null, null, null},
-                {null, null, null, null, null, null, null, null, null, null, null}
+                {null, null, null, null, null, null},
+                {null, null, null, null, null, null},
+                {null, null, null, null, null, null},
+                {null, null, null, null, null, null}
             },
             new String [] {
-                "ID", "Category", "Name", "Price", "Quantity", "Total Price", "Unit of Measure", "Delivery Date", "Expiry Date", "Image", "Employee"
+                "Category", "Brand", "Name", "Retail Price", "Quantity", "Image"
             }
         ));
+        tableProduct.setFont(new java.awt.Font("Yu Gothic UI Semibold", 0, 18)); // NOI18N
         tableProduct.setRowHeight(150);
         scrollProduct.setViewportView(tableProduct);
 

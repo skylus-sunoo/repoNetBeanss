@@ -10,17 +10,35 @@ import javax.swing.ImageIcon;
 import javax.swing.JOptionPane;
 import javax.swing.JTable;
 import javax.swing.table.DefaultTableModel;
-import static project.Main.tbName_Product;
 
 public class TableUtils {
 
-    public final static void refreshTableStockAll(JTable tableProduct) {
-        String query = "SELECT * FROM " + tbName_Product;
-        
+    public static ImageIcon blobToImage(ResultSet rs, String column_name) throws SQLException {
+        Blob blob = (Blob) rs.getBlob(column_name);
+        ImageIcon imageIcon = null;
+        if (blob != null) {
+            byte[] imageBytes = blob.getBytes(1, (int) blob.length());
+            imageIcon = new ImageIcon(imageBytes);
+            Image img = imageIcon.getImage().getScaledInstance(150, 150, Image.SCALE_SMOOTH);
+            imageIcon = new ImageIcon(img);
+        }
+
+        return imageIcon;
+    }
+
+    public final static void refreshTableStockDistinct(JTable tableProduct) {
+        String query = "SELECT * FROM " + Main.tbName_ProductStock;
+
         refreshTableStock(tableProduct, query);
     }
-    
-    public final static void refreshTableStock(JTable tableProduct, String query) {        
+
+    public final static void refreshTableStockAll(JTable tableProduct) {
+        String query = "SELECT * FROM " + Main.tbName_ProductStock;
+
+        refreshTableStock(tableProduct, query);
+    }
+
+    public final static void refreshTableStock(JTable tableProduct, String query) {
         try (Connection conn = Queries.getConnection(Main.dbName); PreparedStatement pst = Queries.prepareQuery(conn, query); ResultSet rs = pst.executeQuery()) {
             DefaultTableModel model = (DefaultTableModel) tableProduct.getModel();
             model.setRowCount(0);
@@ -28,28 +46,20 @@ public class TableUtils {
                 try {
                     String productID = rs.getString("product_ID");
                     String category = rs.getString("product_category");
+                    String brand = rs.getString("product_brand");
                     String name = rs.getString("product_name");
                     String price = String.valueOf(rs.getFloat("product_price"));
                     String quantity = String.valueOf(rs.getInt("product_quantity"));
                     String totalPrice = String.valueOf(rs.getFloat("product_totalPrice"));
-                    String uom = rs.getString("product_uom");
                     String deliveryDate = rs.getString("product_deliveryDate");
-                    String expirationDate = rs.getString("product_expirationDate");
-                    
-                    Blob blob = (Blob) rs.getBlob("product_image");
-                    ImageIcon imageIcon = null;
-                    if (blob != null) {
-                        byte[] imageBytes = blob.getBytes(1, (int) blob.length());
-                        imageIcon = new ImageIcon(imageBytes);
-                        Image img = imageIcon.getImage().getScaledInstance(150, 150, Image.SCALE_SMOOTH);
-                        imageIcon = new ImageIcon(img);
-                    }
-                    
+
+                    ImageIcon imageIcon = blobToImage(rs, "product_image");
+
                     int ID = rs.getInt("employee_ID");
                     String employeeName = getEmployeeNamebyID(ID);
 
                     model.addRow(new Object[]{
-                        productID, category, name, price, quantity, totalPrice, uom, deliveryDate, expirationDate, imageIcon, employeeName
+                        productID, brand, category, name, price, quantity, totalPrice, deliveryDate, imageIcon, employeeName
                     });
 
                 } catch (SQLException e) {
