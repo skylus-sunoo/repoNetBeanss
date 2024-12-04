@@ -2,6 +2,7 @@ package project.search;
 
 import project.Main;
 import project.Queries;
+import project.page.*;
 
 /**
  *
@@ -16,8 +17,12 @@ public class SearchBrand extends javax.swing.JPanel {
         initComponents();
     }
 
-    public void repopulateComboBox() {
+    public void repopulateComboBox(PageDeliver PageDeliver) {
         Queries.repopulateComboBox(comboBrand, "product_brand", "SELECT DISTINCT product_brand FROM " + Main.tbName_ProductStock);
+    }
+
+    public void repopulateComboBox(PageCatalogs PageCatalogs) {
+        Queries.repopulateComboBox(comboBrand, "product_brand", "SELECT DISTINCT product_brand FROM " + Main.tbName_ProductItem);
     }
 
     public String getSelectedBrand() {

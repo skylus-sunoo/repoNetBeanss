@@ -21,8 +21,8 @@ import javax.swing.event.ListSelectionEvent;
 import project.Main;
 import project.Queries;
 import project.TableUtils;
-import static project.TableUtils.refreshTableStock;
-import static project.TableUtils.refreshTableStockAll;
+import static project.TableUtils.refreshTable;
+import static project.TableUtils.refreshTableAll;
 import static project.MainUtils.*;
 import project.WindowUtils;
 import project.search.*;
@@ -32,6 +32,8 @@ import project.search.*;
  * @author Dric
  */
 public class PageDeliver extends javax.swing.JPanel {
+
+    public String currentSearchQuery = "SELECT * FROM " + Main.tbName_ProductStock;
 
     // Pages
     private final SearchEmpty SearchEmpty = new SearchEmpty();
@@ -65,7 +67,7 @@ public class PageDeliver extends javax.swing.JPanel {
         tableProduct.getColumnModel().getColumn(8).setPreferredWidth(120);
         tableProduct.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
         tableProduct.isCellEditable(ERROR, WIDTH);
-        TableUtils.refreshTableStockAll(tableProduct);
+        TableUtils.refreshTableAll(tableProduct, Main.tbName_ProductStock, TableUtils.TableEnum.STOCK_DELIVERY);
 
         tableProduct.setDefaultEditor(Object.class, null);
         tableProduct.getSelectionModel().addListSelectionListener((ListSelectionEvent e) -> {
@@ -85,12 +87,19 @@ public class PageDeliver extends javax.swing.JPanel {
         panelSearch.revalidate();
 
         switch (com) {
-            case SearchCategory searchCategory -> searchCategory.repopulateComboBox();
-            case SearchBrand searchBrand -> searchBrand.repopulateComboBox();
-            case SearchCategoryBrand searchCategoryBrand -> searchCategoryBrand.repopulateComboBox();
+            case SearchCategory searchCategory ->
+                searchCategory.repopulateComboBox(this);
+            case SearchBrand searchBrand ->
+                searchBrand.repopulateComboBox(this);
+            case SearchCategoryBrand searchCategoryBrand ->
+                searchCategoryBrand.repopulateComboBox(this);
             default -> {
             }
         }
+    }
+
+    public void refreshTableProduct() {
+        refreshTable(tableProduct, currentSearchQuery, TableUtils.TableEnum.STOCK_DELIVERY);
     }
 
     public void selectTableStock(int selectedRow) {
@@ -101,12 +110,11 @@ public class PageDeliver extends javax.swing.JPanel {
         String price = (String) tableProduct.getValueAt(selectedRow, 4);
         String quantity = (String) tableProduct.getValueAt(selectedRow, 5);
         String dod = (String) tableProduct.getValueAt(selectedRow, 7);
-        String doe = (String) tableProduct.getValueAt(selectedRow, 8);
 
         fieldID.setText(id);
         comboCategory.setSelectedItem(category);
         comboBrand.setSelectedItem(brand);
-        fieldName.setText(name);
+        comboName.setSelectedItem(name);
         fieldPrice.setText(price);
         fieldQuantity.setText(quantity);
         calculateTotalPrice();
@@ -164,7 +172,7 @@ public class PageDeliver extends javax.swing.JPanel {
                 pst.executeUpdate();
 
                 clearFields();
-                TableUtils.refreshTableStockAll(tableProduct);
+                refreshTableProduct();
 
                 JOptionPane.showMessageDialog(this, "Product Added!", "Success", JOptionPane.INFORMATION_MESSAGE);
             } catch (SQLException e) {
@@ -177,35 +185,44 @@ public class PageDeliver extends javax.swing.JPanel {
 
     public void updateProduct() {
         if (isLoggedIn()) {
-            int id = Integer.parseInt(fieldID.getText());
-            String product_category = comboCategory.getSelectedItem().toString();
-            String product_brand = comboBrand.getSelectedItem().toString();
-            String product_name = comboName.getSelectedItem().toString();
-            String product_price = fieldPrice.getText();
-            String product_quantity = fieldQuantity.getText();
-            String product_deliveryDate = fieldDOD.getText();
-
-            String employee_id = String.valueOf(project.Main.getUserSessionID());
+            int warnUser = JOptionPane.showConfirmDialog(
+                    null,
+                    "Confirm Update?",
+                    "Warning: Update",
+                    JOptionPane.YES_NO_OPTION
+            );
             
-            String query = "UPDATE " + Main.tbName_ProductStock + " SET product_category = ?, product_brand = ?, product_name = ?, product_price = ?, product_quantity = ?, product_deliveryDate = ?, employee_id = ? WHERE product_ID = ?";
+            if (warnUser == JOptionPane.YES_OPTION) {
+                int id = Integer.parseInt(fieldID.getText());
+                String product_category = comboCategory.getSelectedItem().toString();
+                String product_brand = comboBrand.getSelectedItem().toString();
+                String product_name = comboName.getSelectedItem().toString();
+                String product_price = fieldPrice.getText();
+                String product_quantity = fieldQuantity.getText();
+                String product_deliveryDate = fieldDOD.getText();
 
-            try (Connection conn = Queries.getConnection(Main.dbName);) {
-                PreparedStatement pst = conn.prepareStatement(query);
-                pst.setString(1, product_category);
-                pst.setString(2, product_brand);
-                pst.setString(3, product_name);
-                pst.setString(4, product_price);
-                pst.setString(5, product_quantity);
-                pst.setString(6, product_deliveryDate);
-                pst.setString(7, employee_id);
-                pst.setInt(8, id);
-                pst.executeUpdate();
-                JOptionPane.showMessageDialog(this, "Product Updated!", "Success", JOptionPane.INFORMATION_MESSAGE);
+                String employee_id = String.valueOf(project.Main.getUserSessionID());
 
-                clearFields();
-                TableUtils.refreshTableStockAll(tableProduct);
-            } catch (SQLException e) {
-                paneDatabaseError(e);
+                String query = "UPDATE " + Main.tbName_ProductStock + " SET product_category = ?, product_brand = ?, product_name = ?, product_price = ?, product_quantity = ?, product_deliveryDate = ?, employee_id = ? WHERE product_ID = ?";
+
+                try (Connection conn = Queries.getConnection(Main.dbName);) {
+                    PreparedStatement pst = conn.prepareStatement(query);
+                    pst.setString(1, product_category);
+                    pst.setString(2, product_brand);
+                    pst.setString(3, product_name);
+                    pst.setString(4, product_price);
+                    pst.setString(5, product_quantity);
+                    pst.setString(6, product_deliveryDate);
+                    pst.setString(7, employee_id);
+                    pst.setInt(8, id);
+                    pst.executeUpdate();
+                    JOptionPane.showMessageDialog(this, "Product Updated!", "Success", JOptionPane.INFORMATION_MESSAGE);
+
+                    clearFields();
+                    refreshTableProduct();
+                } catch (SQLException e) {
+                    paneDatabaseError(e);
+                }
             }
         } else {
             paneNotLoggedIn();
@@ -214,19 +231,28 @@ public class PageDeliver extends javax.swing.JPanel {
 
     public void deleteProduct() {
         if (isLoggedIn()) {
-            int id = Integer.parseInt(fieldID.getText());
-            String query = "DELETE FROM " + Main.tbName_ProductStock + " WHERE product_ID = ?";
+            int warnUser = JOptionPane.showConfirmDialog(
+                    null,
+                    "Confirm Delete?",
+                    "Warning: Delete",
+                    JOptionPane.YES_NO_OPTION
+            );
 
-            try (Connection conn = Queries.getConnection(Main.dbName);) {
-                PreparedStatement pst = conn.prepareStatement(query);
-                pst.setInt(1, id);
-                pst.executeUpdate();
-                JOptionPane.showMessageDialog(this, "Product Removed!", "Success", JOptionPane.INFORMATION_MESSAGE);
+            if (warnUser == JOptionPane.YES_OPTION) {
+                int id = Integer.parseInt(fieldID.getText());
+                String query = "DELETE FROM " + Main.tbName_ProductStock + " WHERE product_ID = ?";
 
-                clearFields();
-                TableUtils.refreshTableStockAll(tableProduct);
-            } catch (SQLException e) {
-                paneDatabaseError(e);
+                try (Connection conn = Queries.getConnection(Main.dbName);) {
+                    PreparedStatement pst = conn.prepareStatement(query);
+                    pst.setInt(1, id);
+                    pst.executeUpdate();
+                    JOptionPane.showMessageDialog(this, "Product Removed!", "Success", JOptionPane.INFORMATION_MESSAGE);
+
+                    clearFields();
+                    refreshTableProduct();
+                } catch (SQLException e) {
+                    paneDatabaseError(e);
+                }
             }
         } else {
             paneNotLoggedIn();
@@ -856,34 +882,36 @@ public class PageDeliver extends javax.swing.JPanel {
         LocalDate endDate;
         switch (String.valueOf(comboSearch.getSelectedItem())) {
             case "Everything":
-                refreshTableStockAll(tableProduct);
+                currentSearchQuery = "SELECT * FROM " + Main.tbName_ProductStock;
+                refreshTableProduct();
                 break;
             case "Under a Category":
                 selectedCategory = SearchCategory.getSelectedCategory();
-                refreshTableStock(tableProduct, "SELECT * FROM " + Main.tbName_ProductStock + " WHERE product_category = '" + selectedCategory + "'");
+                currentSearchQuery = "SELECT * FROM " + Main.tbName_ProductStock + " WHERE product_category = '" + selectedCategory + "'";
+                refreshTableProduct();
                 break;
             case "Under a Brand":
                 selectedBrand = SearchBrand.getSelectedBrand();
-                refreshTableStock(tableProduct, "SELECT * FROM " + Main.tbName_ProductStock + " WHERE product_brand = '" + selectedBrand + "'");
+                currentSearchQuery = "SELECT * FROM " + Main.tbName_ProductStock + " WHERE product_brand = '" + selectedBrand + "'";
+                refreshTableProduct();
                 break;
             case "Under a Category and Brand":
                 selectedCategory = SearchCategoryBrand.getSelectedCategory();
                 selectedBrand = SearchCategoryBrand.getSelectedBrand();
-                refreshTableStock(tableProduct, "SELECT * FROM " + Main.tbName_ProductStock + " WHERE product_category = '" + selectedCategory + "' AND product_brand = '" + selectedBrand + "'");
+                currentSearchQuery = "SELECT * FROM " + Main.tbName_ProductStock + " WHERE product_category = '" + selectedCategory + "' AND product_brand = '" + selectedBrand + "'";
+                refreshTableProduct();
                 break;
             case "Delivered after a date":
                 startDateString = SearchDeliveryDateSingle.getFieldSearchDateStart().getText();
-
                 startDate = LocalDate.parse(startDateString);
-                query = "SELECT * FROM " + Main.tbName_ProductStock + " WHERE product_deliveryDate >= '" + startDate + "'";
-                refreshTableStock(tableProduct, query);
+                currentSearchQuery = "SELECT * FROM " + Main.tbName_ProductStock + " WHERE product_deliveryDate >= '" + startDate + "'";
+                refreshTableProduct();
                 break;
             case "Delivered before a date":
                 startDateString = SearchDeliveryDateSingle.getFieldSearchDateStart().getText();
-
                 startDate = LocalDate.parse(startDateString);
-                query = "SELECT * FROM " + Main.tbName_ProductStock + " WHERE product_deliveryDate <= '" + startDate + "'";
-                refreshTableStock(tableProduct, query);
+                currentSearchQuery = "SELECT * FROM " + Main.tbName_ProductStock + " WHERE product_deliveryDate <= '" + startDate + "'";
+                refreshTableProduct();
                 break;
             case "Delivered between two dates":
                 startDateString = SearchDeliveryDateBetween.getFieldSearchDateStart().getText();
@@ -893,9 +921,9 @@ public class PageDeliver extends javax.swing.JPanel {
                 endDate = LocalDate.parse(endDateString);
 
                 if (startDate.isBefore(endDate) || startDate.equals(endDate)) {
-                    query = "SELECT * FROM " + Main.tbName_ProductStock + " WHERE product_deliveryDate BETWEEN '"
+                    currentSearchQuery = "SELECT * FROM " + Main.tbName_ProductStock + " WHERE product_deliveryDate BETWEEN '"
                             + startDate + "' AND '" + endDate + "'";
-                    refreshTableStock(tableProduct, query);
+                    refreshTableProduct();
                 } else {
                     JOptionPane.showMessageDialog(this, "Start Date must come before the End Date!", "Error", JOptionPane.INFORMATION_MESSAGE);
                 }

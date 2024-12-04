@@ -1,6 +1,7 @@
 package project.page;
 
 import javax.swing.JTable;
+import project.Main;
 import project.TableUtils;
 import project.swing.ImageRenderer;
 
@@ -24,13 +25,15 @@ public class PageStock extends javax.swing.JPanel {
         tableProduct.getColumnModel().getColumn(5).setPreferredWidth(150);
         tableProduct.getColumnModel().getColumn(5).setCellRenderer(new ImageRenderer());
         tableProduct.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
-        TableUtils.refreshTableStockDistinct(tableProduct);
+        TableUtils.refreshTable(tableProduct, "SELECT product_category, product_brand, product_name, SUM(product_quantity) AS product_quantity FROM "
+                + Main.tbName_ProductStock + " GROUP BY product_category, product_brand, product_name", TableUtils.TableEnum.STOCK_DISTINCT);
 
         tableProduct.setDefaultEditor(Object.class, null);
     }
 
-    public void refreshTableStockDistinct() {
-        TableUtils.refreshTableStockDistinct(tableProduct);
+    public void refreshTableProduct() {
+        TableUtils.refreshTable(tableProduct, "SELECT product_category, product_brand, product_name, SUM(product_quantity) AS product_quantity FROM "
+                + Main.tbName_ProductStock + " GROUP BY product_category, product_brand, product_name", TableUtils.TableEnum.STOCK_DISTINCT);
     }
 
     /**

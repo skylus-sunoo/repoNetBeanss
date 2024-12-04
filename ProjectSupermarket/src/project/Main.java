@@ -55,7 +55,7 @@ public class Main extends javax.swing.JFrame {
             //System.out.println("index " + index);
             switch (index) {
                 case 1:
-                    PageStock.refreshTableStockDistinct();
+                    PageStock.refreshTableProduct();
                     setForm(PageStock);
                     break;
                 case 2:
@@ -64,7 +64,7 @@ public class Main extends javax.swing.JFrame {
                     break;
                 case 3:
                     PageCatalogs.refreshTableCategories();
-                    PageCatalogs.refreshTableProducts();
+                    PageCatalogs.refreshTableProduct();
                     PageCatalogs.repopulateCategoryComboBox();
                     setForm(PageCatalogs);
                     break;

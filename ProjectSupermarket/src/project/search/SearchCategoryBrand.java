@@ -2,12 +2,15 @@ package project.search;
 
 import project.Main;
 import project.Queries;
+import project.page.*;
 
 /**
  *
  * @author Dric
  */
 public class SearchCategoryBrand extends javax.swing.JPanel {
+
+    private String tbName;
 
     /**
      * Creates new form FormBody
@@ -16,9 +19,19 @@ public class SearchCategoryBrand extends javax.swing.JPanel {
         initComponents();
     }
 
-    public void repopulateComboBox() {
-        Queries.repopulateComboBox(comboCategory, "product_category", "SELECT DISTINCT product_category FROM " + Main.tbName_ProductStock);
-        Queries.repopulateComboBox(comboBrand, "product_brand", "SELECT product_brand FROM " + Main.tbName_ProductStock + " WHERE product_category = '" + comboCategory.getSelectedItem() + "'");
+    public void repopulateComboBox(PageDeliver PageDeliver) {
+        tbName = Main.tbName_ProductStock;
+        repopulateComboBoxQueries();
+    }
+
+    public void repopulateComboBox(PageCatalogs PageCatalogs) {
+        tbName = Main.tbName_ProductItem;
+        repopulateComboBoxQueries();
+    }
+
+    public void repopulateComboBoxQueries() {
+        Queries.repopulateComboBox(comboCategory, "product_category", "SELECT DISTINCT product_category FROM " + tbName);
+        Queries.repopulateComboBox(comboBrand, "product_brand", "SELECT product_brand FROM " + tbName + " WHERE product_category = '" + comboCategory.getSelectedItem() + "'");
     }
 
     public String getSelectedCategory() {
@@ -107,7 +120,11 @@ public class SearchCategoryBrand extends javax.swing.JPanel {
     }// </editor-fold>//GEN-END:initComponents
 
     private void comboCategoryActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_comboCategoryActionPerformed
-        // TODO add your handling code here:
+        if (tbName.equals(Main.tbName_ProductStock)) {
+            Queries.repopulateComboBox(comboBrand, "product_brand", "SELECT product_brand FROM " + tbName + " WHERE product_category = '" + comboCategory.getSelectedItem() + "'");
+        } else if (tbName.equals(Main.tbName_ProductItem)) {
+            Queries.repopulateComboBox(comboBrand, "product_brand", "SELECT product_brand FROM " + tbName + " WHERE product_category = '" + comboCategory.getSelectedItem() + "'");
+        }
     }//GEN-LAST:event_comboCategoryActionPerformed
 
     private void comboBrandActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_comboBrandActionPerformed

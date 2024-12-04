@@ -3,9 +3,15 @@
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
+            <file>file:/C:/Users/Dric/Documents/NetBeansProjects/ProjectSupermarket/src/project/search/SearchCategory.java</file>
             <file>file:/C:/Users/Dric/Documents/NetBeansProjects/ProjectSupermarket/src/project/page/PageCatalogs.java</file>
+            <file>file:/C:/Users/Dric/Documents/NetBeansProjects/ProjectSupermarket/src/project/Main.java</file>
             <file>file:/C:/Users/Dric/Documents/NetBeansProjects/ProjectSupermarket/src/project/TableUtils.java</file>
-            <file>file:/C:/Users/Dric/Documents/NetBeansProjects/ProjectSupermarket/src/project/WindowUtils.java</file>
+            <file>file:/C:/Users/Dric/Documents/NetBeansProjects/ProjectSupermarket/src/project/MainUtils.java</file>
+            <file>file:/C:/Users/Dric/Documents/NetBeansProjects/ProjectSupermarket/src/project/search/SearchBrand.java</file>
+            <file>file:/C:/Users/Dric/Documents/NetBeansProjects/ProjectSupermarket/src/project/page/PageStock.java</file>
+            <file>file:/C:/Users/Dric/Documents/NetBeansProjects/ProjectSupermarket/src/project/search/SearchCategoryBrand.java</file>
+            <file>file:/C:/Users/Dric/Documents/NetBeansProjects/ProjectSupermarket/src/project/page/PageDeliver.java</file>
         </group>
     </open-files>
 </project-private>

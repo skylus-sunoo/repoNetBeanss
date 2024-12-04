@@ -1,12 +1,10 @@
 package project.page;
 
-import com.mysql.cj.jdbc.Blob;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.KeyEvent;
 import java.awt.image.BufferedImage;
 import static java.awt.image.ImageObserver.ERROR;
 import static java.awt.image.ImageObserver.WIDTH;
@@ -21,7 +19,6 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.time.LocalDate;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.imageio.ImageIO;
@@ -39,9 +36,7 @@ import javax.swing.table.TableModel;
 import project.Main;
 import static project.MainUtils.*;
 import project.Queries;
-import static project.TableUtils.blobToImage;
-import static project.TableUtils.refreshTableStock;
-import static project.TableUtils.refreshTableStockAll;
+import static project.TableUtils.*;
 import project.WindowUtils;
 import project.search.*;
 import project.swing.ImageRenderer;
@@ -53,6 +48,9 @@ import project.swing.ImageRenderer;
 public class PageCatalogs extends javax.swing.JPanel {
 
     String imgPath = null;
+    public String currentSearchQuery = "SELECT * FROM " + Main.tbName_ProductItem;
+
+    // Pages
     private final SearchEmpty SearchEmpty = new SearchEmpty();
     private final SearchCategory SearchCategory = new SearchCategory();
     private final SearchBrand SearchBrand = new SearchBrand();
@@ -101,6 +99,10 @@ public class PageCatalogs extends javax.swing.JPanel {
         });
     }
 
+    public void refreshTableProduct() {
+        refreshTable(tableProduct, currentSearchQuery, TableEnum.CATALOG_PRODUCT);
+    }
+
     public void refreshTableCategories() {
         String query = "SELECT * FROM " + Main.tbName_ProductCategory;
 
@@ -128,35 +130,8 @@ public class PageCatalogs extends javax.swing.JPanel {
         repopulateCategoryComboBox();
     }
 
-    public void refreshTableProducts() {
-        String query = "SELECT * FROM " + Main.tbName_ProductItem;
-
-        try (Connection conn = Queries.getConnection(Main.dbName); PreparedStatement pst = Queries.prepareQuery(conn, query); ResultSet rs = pst.executeQuery()) {
-            DefaultTableModel model = (DefaultTableModel) tableProduct.getModel();
-            model.setRowCount(0);
-            while (rs.next()) {
-                try {
-                    String product_ID = rs.getString("ID");
-                    String product_category = rs.getString("product_category");
-                    String product_brand = rs.getString("product_brand");
-                    String product_name = rs.getString("product_name");
-                    String product_retail_price = (String.valueOf(rs.getFloat("product_retail_price")));
-
-                    ImageIcon imageIcon = blobToImage(rs, "product_image");
-
-                    model.addRow(new Object[]{
-                        product_ID, product_category, product_brand, product_name, product_retail_price, imageIcon
-                    });
-
-                } catch (SQLException e) {
-                    e.printStackTrace(System.out);
-                }
-            }
-
-        } catch (SQLException e) {
-            JOptionPane.showMessageDialog(null, "Database error: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
-            e.printStackTrace(System.out);
-        }
+    public JTable getTableProduct() {
+        return tableProduct;
     }
 
     private class FieldChangeListener implements DocumentListener, ActionListener {
@@ -209,6 +184,8 @@ public class PageCatalogs extends javax.swing.JPanel {
 
     public void clearProductFields() {
         fieldProductID.setText("");
+        comboCategory.setSelectedIndex(0);
+        comboBrand.setSelectedIndex(0);
         fieldName.setText("Enter Product Name");
         fieldName.setForeground(new Color(153, 153, 153));
         fieldRetail.setText("Enter Retail Price");
@@ -280,9 +257,12 @@ public class PageCatalogs extends javax.swing.JPanel {
         panelSearch.revalidate();
 
         switch (com) {
-            case SearchCategory searchCategory -> searchCategory.repopulateComboBox();
-            case SearchBrand searchBrand -> searchBrand.repopulateComboBox();
-            case SearchCategoryBrand searchCategoryBrand -> searchCategoryBrand.repopulateComboBox();
+            case SearchCategory searchCategory ->
+                searchCategory.repopulateComboBox(this);
+            case SearchBrand searchBrand ->
+                searchBrand.repopulateComboBox(this);
+            case SearchCategoryBrand searchCategoryBrand ->
+                searchCategoryBrand.repopulateComboBox(this);
             default -> {
             }
         }
@@ -665,7 +645,6 @@ public class PageCatalogs extends javax.swing.JPanel {
 
         comboSearch.setFont(new java.awt.Font("Yu Gothic UI Semibold", 0, 12)); // NOI18N
         comboSearch.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Everything", "Under a Category", "Under a Brand", "Under a Category and Brand", "Retail Price Greater Than", "Retail Price Lesser Than" }));
-        comboSearch.setSelectedIndex(1);
         comboSearch.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 comboSearchActionPerformed(evt);
@@ -905,27 +884,37 @@ public class PageCatalogs extends javax.swing.JPanel {
 
     private void btnDeleteCategoryActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnDeleteCategoryActionPerformed
         if (isLoggedIn()) {
-            int id = Integer.parseInt(fieldID.getText());
-            String query = "DELETE FROM " + Main.tbName_ProductCategory + " WHERE product_category_ID = ?";
+            int warnUser = JOptionPane.showConfirmDialog(
+                    null,
+                    "Confirm Delete?",
+                    "Warning: Delete",
+                    JOptionPane.YES_NO_OPTION
+            );
 
-            try (Connection conn = Queries.getConnection(Main.dbName);) {
-                PreparedStatement pst = conn.prepareStatement(query);
-                pst.setInt(1, id);
-                pst.executeUpdate();
-                JOptionPane.showMessageDialog(this, "Category Removed!", "Success", JOptionPane.INFORMATION_MESSAGE);
+            if (warnUser == JOptionPane.YES_OPTION) {
+                int id = Integer.parseInt(fieldID.getText());
+                String query = "DELETE FROM " + Main.tbName_ProductCategory + " WHERE product_category_ID = ?";
 
-                clearCategoryFields();
-                refreshTableCategories();
-            } catch (SQLException e) {
-                if (e.getErrorCode() == 1451) {
-                    JOptionPane.showMessageDialog(this,
-                            "This category cannot be deleted because there are products associated with it in other tables.",
-                            "Deletion Error",
-                            JOptionPane.ERROR_MESSAGE);
-                } else {
-                    paneDatabaseError(e);
+                try (Connection conn = Queries.getConnection(Main.dbName);) {
+                    PreparedStatement pst = conn.prepareStatement(query);
+                    pst.setInt(1, id);
+                    pst.executeUpdate();
+                    JOptionPane.showMessageDialog(this, "Category Removed!", "Success", JOptionPane.INFORMATION_MESSAGE);
+
+                    clearCategoryFields();
+                    refreshTableCategories();
+                } catch (SQLException e) {
+                    if (e.getErrorCode() == 1451) {
+                        JOptionPane.showMessageDialog(this,
+                                "This category cannot be deleted because there are products associated with it in other tables.",
+                                "Deletion Error",
+                                JOptionPane.ERROR_MESSAGE);
+                    } else {
+                        paneDatabaseError(e);
+                    }
                 }
             }
+
         } else {
             paneNotLoggedIn();
         }
@@ -1014,7 +1003,7 @@ public class PageCatalogs extends javax.swing.JPanel {
                     pst.executeUpdate();
 
                     clearProductFields();
-                    refreshTableProducts();
+                    refreshTableProduct();
 
                     JOptionPane.showMessageDialog(this, "Product Added!", "Success", JOptionPane.INFORMATION_MESSAGE);
                 } catch (SQLException e) {
@@ -1032,50 +1021,60 @@ public class PageCatalogs extends javax.swing.JPanel {
 
     private void btnUpdateProductActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnUpdateProductActionPerformed
         if (isLoggedIn()) {
-            String path = imgPath;
+            int warnUser = JOptionPane.showConfirmDialog(
+                    null,
+                    "Confirm Update?",
+                    "Warning: Update",
+                    JOptionPane.YES_NO_OPTION
+            );
 
-            int id = Integer.parseInt(fieldProductID.getText());
-            String product_category = comboCategory.getSelectedItem().toString();
-            String product_name = fieldName.getText();
-            String product_retail = fieldRetail.getText();
+            if (warnUser == JOptionPane.YES_OPTION) {
+                String path = imgPath;
 
-            String query = "UPDATE " + Main.tbName_ProductItem + " SET product_category = ?, product_name = ?, product_retail_price = ?  WHERE ID = ?";
+                int id = Integer.parseInt(fieldProductID.getText());
+                String product_category = comboCategory.getSelectedItem().toString();
+                String product_name = fieldName.getText();
+                String product_retail = fieldRetail.getText();
 
-            try (Connection conn = Queries.getConnection(Main.dbName);) {
-                PreparedStatement pst = conn.prepareStatement(query);
-                pst.setString(1, product_category);
-                pst.setString(2, product_name);
-                pst.setString(3, product_retail);
-                pst.setInt(4, id);
-                pst.executeUpdate();
-                JOptionPane.showMessageDialog(this, "Product Updated!", "Success", JOptionPane.INFORMATION_MESSAGE);
+                String query = "UPDATE " + Main.tbName_ProductItem + " SET product_category = ?, product_name = ?, product_retail_price = ?  WHERE ID = ?";
 
-                clearProductFields();
-                refreshTableProducts();
-            } catch (SQLException e) {
-                paneDatabaseError(e);
-            }
+                try (Connection conn = Queries.getConnection(Main.dbName);) {
+                    PreparedStatement pst = conn.prepareStatement(query);
+                    pst.setString(1, product_category);
+                    pst.setString(2, product_name);
+                    pst.setString(3, product_retail);
+                    pst.setInt(4, id);
+                    pst.executeUpdate();
+                    JOptionPane.showMessageDialog(this, "Product Updated!", "Success", JOptionPane.INFORMATION_MESSAGE);
 
-            if (path != null) {
-                try {
-                    InputStream img = new FileInputStream(new File(path));
-                    query = "UPDATE " + Main.tbName_ProductItem + " SET product_image = ? WHERE ID = ?";
+                    clearProductFields();
+                    refreshTableProduct();
+                } catch (SQLException e) {
+                    paneDatabaseError(e);
+                }
 
-                    try (Connection conn = Queries.getConnection(Main.dbName);) {
-                        PreparedStatement pst = conn.prepareStatement(query);
-                        pst.setBlob(1, img);
-                        pst.setInt(2, id);
-                        pst.executeUpdate();
+                if (path != null) {
+                    try {
+                        InputStream img = new FileInputStream(new File(path));
+                        query = "UPDATE " + Main.tbName_ProductItem + " SET product_image = ? WHERE ID = ?";
 
-                        clearProductFields();
-                        refreshTableProducts();
-                    } catch (SQLException e) {
-                        paneDatabaseError(e);
+                        try (Connection conn = Queries.getConnection(Main.dbName);) {
+                            PreparedStatement pst = conn.prepareStatement(query);
+                            pst.setBlob(1, img);
+                            pst.setInt(2, id);
+                            pst.executeUpdate();
+
+                            clearProductFields();
+                            refreshTableProduct();
+                        } catch (SQLException e) {
+                            paneDatabaseError(e);
+                        }
+                    } catch (FileNotFoundException ex) {
+                        JOptionPane.showMessageDialog(null, ex.getMessage());
                     }
-                } catch (FileNotFoundException ex) {
-                    JOptionPane.showMessageDialog(null, ex.getMessage());
                 }
             }
+
         } else {
             paneNotLoggedIn();
         }
@@ -1087,20 +1086,30 @@ public class PageCatalogs extends javax.swing.JPanel {
 
     private void btnDeleteProductActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnDeleteProductActionPerformed
         if (isLoggedIn()) {
-            int id = Integer.parseInt(fieldProductID.getText());
-            String query = "DELETE FROM " + Main.tbName_ProductItem + " WHERE ID = ?";
+            int warnUser = JOptionPane.showConfirmDialog(
+                    null,
+                    "Confirm Delete?",
+                    "Warning: Delete",
+                    JOptionPane.YES_NO_OPTION
+            );
 
-            try (Connection conn = Queries.getConnection(Main.dbName);) {
-                PreparedStatement pst = conn.prepareStatement(query);
-                pst.setInt(1, id);
-                pst.executeUpdate();
-                JOptionPane.showMessageDialog(this, "Product Removed!", "Success", JOptionPane.INFORMATION_MESSAGE);
+            if (warnUser == JOptionPane.YES_OPTION) {
+                int id = Integer.parseInt(fieldProductID.getText());
+                String query = "DELETE FROM " + Main.tbName_ProductItem + " WHERE ID = ?";
 
-                clearProductFields();
-                refreshTableProducts();
-            } catch (SQLException e) {
-                paneDatabaseError(e);
+                try (Connection conn = Queries.getConnection(Main.dbName);) {
+                    PreparedStatement pst = conn.prepareStatement(query);
+                    pst.setInt(1, id);
+                    pst.executeUpdate();
+                    JOptionPane.showMessageDialog(this, "Product Removed!", "Success", JOptionPane.INFORMATION_MESSAGE);
+
+                    clearProductFields();
+                    refreshTableProduct();
+                } catch (SQLException e) {
+                    paneDatabaseError(e);
+                }
             }
+
         } else {
             paneNotLoggedIn();
         }
@@ -1119,29 +1128,29 @@ public class PageCatalogs extends javax.swing.JPanel {
     }//GEN-LAST:event_fieldRetailKeyTyped
 
     private void btnSearchActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSearchActionPerformed
-        String query;
         String selectedCategory;
         String selectedBrand;
-        String startDateString;
-        String endDateString;
-        LocalDate startDate;
-        LocalDate endDate;
+
         switch (String.valueOf(comboSearch.getSelectedItem())) {
             case "Everything":
-                refreshTableStockAll(tableProduct);
+                currentSearchQuery = "SELECT * FROM " + Main.tbName_ProductItem;
+                refreshTableProduct();
                 break;
             case "Under a Category":
                 selectedCategory = SearchCategory.getSelectedCategory();
-                refreshTableStock(tableProduct, "SELECT * FROM " + Main.tbName_ProductStock + " WHERE product_category = '" + selectedCategory + "'");
+                currentSearchQuery = "SELECT * FROM " + Main.tbName_ProductItem + " WHERE product_category = '" + selectedCategory + "'";
+                refreshTableProduct();
                 break;
             case "Under a Brand":
                 selectedBrand = SearchBrand.getSelectedBrand();
-                refreshTableStock(tableProduct, "SELECT * FROM " + Main.tbName_ProductStock + " WHERE product_brand = '" + selectedBrand + "'");
+                currentSearchQuery = "SELECT * FROM " + Main.tbName_ProductItem + " WHERE product_brand = '" + selectedBrand + "'";
+                refreshTableProduct();
                 break;
             case "Under a Category and Brand":
                 selectedCategory = SearchCategoryBrand.getSelectedCategory();
                 selectedBrand = SearchCategoryBrand.getSelectedBrand();
-                refreshTableStock(tableProduct, "SELECT * FROM " + Main.tbName_ProductStock + " WHERE product_category = '" + selectedCategory + "' AND product_brand = '" + selectedBrand + "'");
+                currentSearchQuery = "SELECT * FROM " + Main.tbName_ProductItem + " WHERE product_category = '" + selectedCategory + "' AND product_brand = '" + selectedBrand + "'";
+                refreshTableProduct();
                 break;
             default:
                 throw new AssertionError();
