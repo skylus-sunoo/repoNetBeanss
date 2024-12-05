@@ -106,12 +106,13 @@ public class TableUtils {
                             //<editor-fold defaultstate="collapsed" desc="SUPPLY HISTORY">
                             case SUPPLY_HISTORY: {
                                 int history_ID = rs.getInt("history_id");
+                                String history_datetime = rs.getString("history_datetime");
                                 String history_type = rs.getString("history_type");
                                 String history_description = rs.getString("history_description");
                                 int history_employee = rs.getInt("history_employee");
                                 String history_employeeString = getEmployeeNamebyID(history_employee);
                                 model.addRow(new Object[]{
-                                    history_ID, history_type, history_description, history_employeeString
+                                    history_ID, history_datetime, history_type, history_description, history_employeeString
                                 });
                                 break;
                             }
@@ -130,7 +131,7 @@ public class TableUtils {
         }
     }
 
-    private static String getEmployeeNamebyID(int ID) {
+    public static String getEmployeeNamebyID(int ID) {
         String employeeName = null;
         String query = "SELECT employee_name FROM " + Main.tbName_Employee + " WHERE employee_ID = ?";
 

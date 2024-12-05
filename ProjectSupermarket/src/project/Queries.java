@@ -5,6 +5,9 @@ import java.sql.SQLException;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -22,6 +25,35 @@ public class Queries {
         CATALOG_CATEGORY_ADD,
         CATALOG_CATEGORY_UPDATE,
         CATALOG_CATEGORY_DELETE,
+        CATALOG_PRODUCT_ADD,
+        CATALOG_PRODUCT_UPDATE,
+        CATALOG_PRODUCT_DELETE,
+    }
+
+    public static void addSupplyHistoryEntry(EnumHistory enumHistory, String desc) {
+        String historyQuery = "INSERT INTO " + Main.tbName_SupplyHistory + " (history_datetime, history_type, history_description, history_employee) VALUES (?, ?, ?, ?)";
+
+        LocalDateTime historyCurrentDateTime = LocalDateTime.now();
+        DateTimeFormatter historyFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+        String historyFormattedDateTime = historyCurrentDateTime.format(historyFormatter);
+
+//        switch (enumHistory) {
+//            case SUPPLY_ADD:
+//                break;
+//            default:
+//                throw new AssertionError();
+//        }
+
+        try (Connection historyConn = Queries.getConnection(Main.dbName);) {
+            PreparedStatement historyPst = historyConn.prepareStatement(historyQuery);
+            historyPst.setString(1, historyFormattedDateTime);
+            historyPst.setString(2, enumHistory.toString());
+            historyPst.setString(3, desc);
+            historyPst.setInt(4, Main.getUserSessionID());
+            historyPst.executeUpdate();
+        } catch (SQLException e) {
+            paneDatabaseError(e);
+        }
     }
 
     //<editor-fold defaultstate="collapsed" desc="MySQL Setup">
@@ -121,21 +153,6 @@ public class Queries {
             pst.close();
             conn.close();
 
-        } catch (SQLException e) {
-            paneDatabaseError(e);
-        }
-    }
-
-    public static void addSupplyHistoryEntry(EnumHistory enumHistory) {
-        String query = "INSERT INTO " + Main.tbName_SupplyHistory + " (history_type, history_description, history_employee) VALUES (?, ?, ?)";
-        String desc = "";
-        int id = 1;
-        try (Connection conn = Queries.getConnection(Main.dbName);) {
-            PreparedStatement pst = conn.prepareStatement(query);
-            pst.setString(1, enumHistory.toString());
-            pst.setString(2, desc);
-            pst.setInt(3, id);
-            pst.executeUpdate();
         } catch (SQLException e) {
             paneDatabaseError(e);
         }

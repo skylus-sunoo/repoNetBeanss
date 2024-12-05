@@ -6,6 +6,7 @@ import java.awt.event.ActionListener;
 import java.io.FileNotFoundException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -22,6 +23,7 @@ import project.Queries;
 import project.TableUtils;
 import static project.TableUtils.refreshTable;
 import static project.MainUtils.*;
+import project.Queries.EnumHistory;
 import project.WindowUtils;
 import project.search.*;
 import project.search.SearchComboBox.EnumComboBox;
@@ -165,6 +167,7 @@ public class PageDeliver extends javax.swing.JPanel {
             String product_price = fieldPrice.getText();
             String product_quantity = fieldQuantity.getText();
             String product_deliveryDate = fieldDOD.getText();
+            String product_full_name = product_category + " / " + product_brand + " / " + product_name;
 
             String employee_id = String.valueOf(project.Main.getUserSessionID());
 
@@ -172,7 +175,7 @@ public class PageDeliver extends javax.swing.JPanel {
                     + "VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
 
             try (Connection conn = Queries.getConnection(Main.dbName);) {
-                PreparedStatement pst = conn.prepareStatement(query);
+                PreparedStatement pst = conn.prepareStatement(query, PreparedStatement.RETURN_GENERATED_KEYS);
                 pst.setString(1, product_category);
                 pst.setString(2, product_brand);
                 pst.setString(3, product_name);
@@ -182,6 +185,14 @@ public class PageDeliver extends javax.swing.JPanel {
                 pst.setString(7, product_deliveryDate);
                 pst.setString(8, employee_id);
                 pst.executeUpdate();
+                
+                float product_total_price = Float.parseFloat(product_price)*Float.parseFloat(product_quantity);
+
+                ResultSet generatedKeys = pst.getGeneratedKeys();
+                if (generatedKeys.next()) {
+                    int id = generatedKeys.getInt(1);
+                    Queries.addSupplyHistoryEntry(EnumHistory.SUPPLY_ADD, "[" + id + "] " + product_full_name + "  -  (Quantity: " + product_quantity + "; Cost: " + product_price + "; Total Cost: " + product_total_price + "; Delivery: " + product_deliveryDate + ")");
+                }
 
                 clearFields();
                 refreshTableProduct();
@@ -206,6 +217,7 @@ public class PageDeliver extends javax.swing.JPanel {
 
             if (warnUser == JOptionPane.YES_OPTION) {
                 int id = Integer.parseInt(fieldID.getText());
+
                 String product_category = comboCategory.getSelectedItem().toString();
                 String product_brand = comboBrand.getSelectedItem().toString();
                 String product_name = comboName.getSelectedItem().toString();
@@ -214,6 +226,53 @@ public class PageDeliver extends javax.swing.JPanel {
                 String product_deliveryDate = fieldDOD.getText();
 
                 String employee_id = String.valueOf(project.Main.getUserSessionID());
+
+                String queryHistory = "SELECT * FROM " + Main.tbName_ProductStock + " WHERE product_ID = ?";
+                try (Connection conn = Queries.getConnection(Main.dbName);) {
+                    PreparedStatement pst = conn.prepareStatement(queryHistory);
+                    pst.setInt(1, id);
+
+                    ResultSet rs = pst.executeQuery();
+
+                    if (rs.next()) {
+                        String old_category = rs.getString("product_category");
+                        String old_brand = rs.getString("product_brand");
+                        String old_name = rs.getString("product_name");
+                        String old_price = rs.getString("product_price");
+                        String old_quantity = rs.getString("product_remaining_quantity");
+                        String product_full_name = old_category + " / " + old_brand + " / " + old_name;
+                        int num_changes = 0;
+
+                        StringBuilder changeLog = new StringBuilder("[" + id + "] " + product_full_name + " | ");
+                        if (!old_quantity.equals(product_quantity)) {
+                            changeLog.append("Quantity: ").append(old_quantity).append(" -> ").append(product_quantity).append("; ");
+                            num_changes++;
+                        }
+                        if (!old_category.equals(product_category)) {
+                            changeLog.append("Category: ").append(old_category).append(" -> ").append(product_category).append("; ");
+                            num_changes++;
+                        }
+                        if (!old_brand.equals(product_brand)) {
+                            changeLog.append("Brand: ").append(old_brand).append(" -> ").append(product_brand).append("; ");
+                            num_changes++;
+                        }
+                        if (!old_name.equals(product_name)) {
+                            changeLog.append("Name: ").append(old_name).append(" -> ").append(product_name).append("; ");
+                            num_changes++;
+                        }
+                        if (!old_price.equals(product_price)) {
+                            changeLog.append("Price: ").append(old_price).append(" -> ").append(product_price).append("; ");
+                            num_changes++;
+                        }
+
+                        // add entry if there are changes
+                        if (num_changes > 0) {
+                            Queries.addSupplyHistoryEntry(EnumHistory.SUPPLY_UPDATE, changeLog.toString());
+                        }
+                    }
+                } catch (SQLException e) {
+                    paneDatabaseError(e);
+                }
 
                 String query = "UPDATE " + Main.tbName_ProductStock + " SET product_category = ?, product_brand = ?, product_name = ?, product_price = ?, product_remaining_quantity = ?, product_deliveryDate = ?, employee_id = ? WHERE product_ID = ?";
 
@@ -228,6 +287,7 @@ public class PageDeliver extends javax.swing.JPanel {
                     pst.setString(7, employee_id);
                     pst.setInt(8, id);
                     pst.executeUpdate();
+
                     JOptionPane.showMessageDialog(this, "Product Updated!", "Success", JOptionPane.INFORMATION_MESSAGE);
 
                     clearFields();
@@ -252,6 +312,26 @@ public class PageDeliver extends javax.swing.JPanel {
 
             if (warnUser == JOptionPane.YES_OPTION) {
                 int id = Integer.parseInt(fieldID.getText());
+
+                String queryHistory = "SELECT * FROM " + Main.tbName_ProductStock + " WHERE product_ID = ?";
+                try (Connection conn = Queries.getConnection(Main.dbName);) {
+                    PreparedStatement pst = conn.prepareStatement(queryHistory);
+                    pst.setInt(1, id);
+
+                    ResultSet rs = pst.executeQuery();
+
+                    if (rs.next()) {
+                        String product_category = rs.getString("product_category");
+                        String product_brand = rs.getString("product_brand");
+                        String product_name = rs.getString("product_name");
+                        String product_full_name = product_category + " / " + product_brand + " / " + product_name;
+
+                        Queries.addSupplyHistoryEntry(EnumHistory.SUPPLY_DELETE, "[" + id + "] " + product_full_name);
+                    }
+                } catch (SQLException e) {
+                    paneDatabaseError(e);
+                }
+
                 String query = "DELETE FROM " + Main.tbName_ProductStock + " WHERE product_ID = ?";
 
                 try (Connection conn = Queries.getConnection(Main.dbName);) {

@@ -17,22 +17,20 @@ public class PageHistory extends javax.swing.JPanel {
     public PageHistory() {
         initComponents();
 
-        tableProduct.getColumnModel().getColumn(0).setPreferredWidth(225);
-        tableProduct.getColumnModel().getColumn(1).setPreferredWidth(300);
-        tableProduct.getColumnModel().getColumn(2).setPreferredWidth(450);
-        tableProduct.getColumnModel().getColumn(3).setPreferredWidth(100);
-        tableProduct.getColumnModel().getColumn(4).setPreferredWidth(100);
-        tableProduct.getColumnModel().getColumn(5).setPreferredWidth(150);
-        tableProduct.getColumnModel().getColumn(5).setCellRenderer(new ImageRenderer());
-        tableProduct.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
-        TableUtils.refreshTable(tableProduct, "SELECT * FROM " + Main.tbName_SupplyHistory, TableUtils.TableEnum.SUPPLY_HISTORY);
+        tableHistory.getColumnModel().getColumn(0).setPreferredWidth(50);
+        tableHistory.getColumnModel().getColumn(1).setPreferredWidth(150);
+        tableHistory.getColumnModel().getColumn(2).setPreferredWidth(150);
+        tableHistory.getColumnModel().getColumn(3).setPreferredWidth(900);
+        tableHistory.getColumnModel().getColumn(4).setPreferredWidth(100);
+        tableHistory.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
+        TableUtils.refreshTable(tableHistory, "SELECT * FROM " + Main.tbName_SupplyHistory, TableUtils.TableEnum.SUPPLY_HISTORY);
 
-        tableProduct.setDefaultEditor(Object.class, null);
-        tableProduct.setAutoCreateRowSorter(true);
+        tableHistory.setDefaultEditor(Object.class, null);
+        tableHistory.setAutoCreateRowSorter(true);
     }
 
     public void refreshTableHistory() {
-        TableUtils.refreshTable(tableProduct, "SELECT * FROM " + Main.tbName_SupplyHistory, TableUtils.TableEnum.SUPPLY_HISTORY);
+        TableUtils.refreshTable(tableHistory, "SELECT * FROM " + Main.tbName_SupplyHistory, TableUtils.TableEnum.SUPPLY_HISTORY);
     }
 
     /**
@@ -46,8 +44,8 @@ public class PageHistory extends javax.swing.JPanel {
 
         panelBody = new project.component.ShadowPanel();
         panelMain = new javax.swing.JPanel();
-        scrollProduct = new javax.swing.JScrollPane();
-        tableProduct = new project.swing.Table();
+        scrollHistory = new javax.swing.JScrollPane();
+        tableHistory = new project.swing.Table();
 
         setMaximumSize(new java.awt.Dimension(1389, 844));
         setMinimumSize(new java.awt.Dimension(1389, 844));
@@ -70,22 +68,20 @@ public class PageHistory extends javax.swing.JPanel {
             .addGap(0, 844, Short.MAX_VALUE)
         );
 
-        scrollProduct.setBorder(null);
+        scrollHistory.setBorder(null);
 
-        tableProduct.setModel(new javax.swing.table.DefaultTableModel(
+        tableHistory.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
-                {null, null, null, null, null, null},
-                {null, null, null, null, null, null},
-                {null, null, null, null, null, null},
-                {null, null, null, null, null, null}
+                {null, null, null, null, null},
+                {null, null, null, null, null},
+                {null, null, null, null, null},
+                {null, null, null, null, null}
             },
             new String [] {
-                "Category", "Brand", "Name", "Retail Price", "Quantity", "Image"
+                "ID", "Date / Time", "Type", "Description", "Employee"
             }
         ));
-        tableProduct.setFont(new java.awt.Font("Yu Gothic UI Semibold", 0, 18)); // NOI18N
-        tableProduct.setRowHeight(150);
-        scrollProduct.setViewportView(tableProduct);
+        scrollHistory.setViewportView(tableHistory);
 
         javax.swing.GroupLayout panelBodyLayout = new javax.swing.GroupLayout(panelBody);
         panelBody.setLayout(panelBodyLayout);
@@ -93,7 +89,7 @@ public class PageHistory extends javax.swing.JPanel {
             panelBodyLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(panelBodyLayout.createSequentialGroup()
                 .addGap(15, 15, 15)
-                .addComponent(scrollProduct, javax.swing.GroupLayout.PREFERRED_SIZE, 1350, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(scrollHistory, javax.swing.GroupLayout.PREFERRED_SIZE, 1358, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(panelMain, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(14, 14, 14))
@@ -103,8 +99,8 @@ public class PageHistory extends javax.swing.JPanel {
             .addGroup(panelBodyLayout.createSequentialGroup()
                 .addGap(14, 14, 14)
                 .addGroup(panelBodyLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(scrollProduct, javax.swing.GroupLayout.PREFERRED_SIZE, 812, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(panelMain, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                    .addComponent(panelMain, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(scrollHistory, javax.swing.GroupLayout.PREFERRED_SIZE, 815, javax.swing.GroupLayout.PREFERRED_SIZE)))
         );
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
@@ -126,7 +122,7 @@ public class PageHistory extends javax.swing.JPanel {
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private project.component.ShadowPanel panelBody;
     private javax.swing.JPanel panelMain;
-    private javax.swing.JScrollPane scrollProduct;
-    private project.swing.Table tableProduct;
+    private javax.swing.JScrollPane scrollHistory;
+    private project.swing.Table tableHistory;
     // End of variables declaration//GEN-END:variables
 }

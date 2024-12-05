@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Dec 05, 2024 at 01:36 PM
+-- Generation Time: Dec 05, 2024 at 05:17 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -357,7 +357,11 @@ INSERT INTO `tb_productstock` (`product_ID`, `product_category`, `product_brand`
 (11, 'CASE', 'Antec', 'Performance P8', 250, 4, 4, '2024-12-05', 1),
 (12, 'CASE', 'Antec', 'Performance P110 Luce', 300, 3, 3, '2024-12-05', 1),
 (13, 'CASE', 'Antec', 'Performance P120 Crystal', 400, 2, 2, '2024-12-05', 1),
-(14, 'CASE', 'ASUS', 'ROG Strix Helios', 1700, 1, 1, '2024-12-05', 1);
+(14, 'CASE', 'ASUS', 'ROG Strix Helios', 1500, 1, 1, '2024-12-05', 1),
+(15, 'CABLES', 'N/A', 'Braided Ribbon', 3, 12, 12, '2024-12-05', 1),
+(16, 'CABLES', 'N/A', 'Braided Ribbon', 3, 12, 12, '2024-12-05', 1),
+(17, 'CABLES', 'N/A', 'Braided Ribbon', 3, 12, 12, '2024-12-05', 1),
+(18, 'CASE', 'Antec', 'Performance P120 Crystal', 400, 2, 2, '2024-12-05', 1);
 
 -- --------------------------------------------------------
 
@@ -367,10 +371,19 @@ INSERT INTO `tb_productstock` (`product_ID`, `product_category`, `product_brand`
 
 CREATE TABLE `tb_supplyhistory` (
   `history_id` int(11) NOT NULL,
+  `history_datetime` datetime NOT NULL,
   `history_type` varchar(100) NOT NULL,
   `history_description` varchar(255) NOT NULL,
   `history_employee` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `tb_supplyhistory`
+--
+
+INSERT INTO `tb_supplyhistory` (`history_id`, `history_datetime`, `history_type`, `history_description`, `history_employee`) VALUES
+(2, '2024-12-06 00:15:04', 'SUPPLY_ADD', '[17] CABLES / N/A / Braided Ribbon  -  (Quantity: 12; Cost: 3.0; Delivery: 2024-12-05)', 1),
+(3, '2024-12-06 00:17:12', 'SUPPLY_ADD', '[18] CASE / Antec / Performance P120 Crystal  -  (Quantity: 2; Cost: 400.0; Total Cost: 800.0; Delivery: 2024-12-05)', 1);
 
 --
 -- Indexes for dumped tables
@@ -457,13 +470,13 @@ ALTER TABLE `tb_productitems`
 -- AUTO_INCREMENT for table `tb_productstock`
 --
 ALTER TABLE `tb_productstock`
-  MODIFY `product_ID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=15;
+  MODIFY `product_ID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=19;
 
 --
 -- AUTO_INCREMENT for table `tb_supplyhistory`
 --
 ALTER TABLE `tb_supplyhistory`
-  MODIFY `history_id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `history_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- Constraints for dumped tables
