@@ -5,7 +5,7 @@ import java.awt.*;
 import java.awt.event.*;
 
 public class WindowUtils {
-
+    
     public enum FieldFocus {
         GAINED, LOST
     };

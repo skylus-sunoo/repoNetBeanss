@@ -15,6 +15,16 @@ import static project.MainUtils.*;
 
 public class Queries {
 
+    public enum EnumHistory {
+        SUPPLY_ADD,
+        SUPPLY_UPDATE,
+        SUPPLY_DELETE,
+        CATALOG_CATEGORY_ADD,
+        CATALOG_CATEGORY_UPDATE,
+        CATALOG_CATEGORY_DELETE,
+    }
+
+    //<editor-fold defaultstate="collapsed" desc="MySQL Setup">
     public static void testConnection(String dbName) {
         try (Connection conn = getConnection(dbName)) {
             System.out.println("Connection successful!");
@@ -43,6 +53,7 @@ public class Queries {
         }
         return pst;
     }
+    //</editor-fold>
 
     public static boolean recordExists(Connection conn, String query, String... params) throws SQLException {
         try (PreparedStatement pst = prepareQueryWithParameters(conn, query, params); ResultSet rs = pst.executeQuery()) {
@@ -64,7 +75,7 @@ public class Queries {
 
                 String alterQuery = "ALTER TABLE " + tbName + " AUTO_INCREMENT = ?";
                 try (PreparedStatement alterPst = conn.prepareStatement(alterQuery)) {
-                    alterPst.setInt(1, rowCount + 1); 
+                    alterPst.setInt(1, rowCount + 1);
                     alterPst.executeUpdate();
                 } catch (SQLException e) {
                     paneDatabaseError(e);
@@ -87,7 +98,14 @@ public class Queries {
             }
 
             List<String> sortedItems = new ArrayList<>(uniqueItems);
+            boolean hasNA = sortedItems.contains("N/A");
+            if (hasNA) {
+                sortedItems.remove("N/A");
+            }
             Collections.sort(sortedItems, String.CASE_INSENSITIVE_ORDER);
+            if (hasNA) {
+                sortedItems.add(0, "N/A"); // ensures N/A is index 0
+            }
 
             comboBox.removeAllItems();
             for (String item : sortedItems) {
@@ -103,6 +121,21 @@ public class Queries {
             pst.close();
             conn.close();
 
+        } catch (SQLException e) {
+            paneDatabaseError(e);
+        }
+    }
+
+    public static void addSupplyHistoryEntry(EnumHistory enumHistory) {
+        String query = "INSERT INTO " + Main.tbName_SupplyHistory + " (history_type, history_description, history_employee) VALUES (?, ?, ?)";
+        String desc = "";
+        int id = 1;
+        try (Connection conn = Queries.getConnection(Main.dbName);) {
+            PreparedStatement pst = conn.prepareStatement(query);
+            pst.setString(1, enumHistory.toString());
+            pst.setString(2, desc);
+            pst.setInt(3, id);
+            pst.executeUpdate();
         } catch (SQLException e) {
             paneDatabaseError(e);
         }

@@ -18,6 +18,7 @@ public class TableUtils {
         STOCK_DELIVERY,
         CATALOG_CATEGORY,
         CATALOG_PRODUCT,
+        SUPPLY_HISTORY,
     };
 
     public static ImageIcon blobToImage(ResultSet rs, String column_name) throws SQLException {
@@ -102,6 +103,19 @@ public class TableUtils {
                                 break;
                             }
                             //</editor-fold>
+                            //<editor-fold defaultstate="collapsed" desc="SUPPLY HISTORY">
+                            case SUPPLY_HISTORY: {
+                                int history_ID = rs.getInt("history_id");
+                                String history_type = rs.getString("history_type");
+                                String history_description = rs.getString("history_description");
+                                int history_employee = rs.getInt("history_employee");
+                                String history_employeeString = getEmployeeNamebyID(history_employee);
+                                model.addRow(new Object[]{
+                                    history_ID, history_type, history_description, history_employeeString
+                                });
+                                break;
+                            }
+                            //</editor-fold>
                             default:
                                 break;
                         }
@@ -134,5 +148,44 @@ public class TableUtils {
         }
 
         return employeeName;
+    }
+
+    public static int getEmployeeIDbyName(String name) {
+        int employeeID = -1;
+        String query = "SELECT employee_ID FROM " + Main.tbName_Employee + " WHERE employee_name = ?";
+
+        try (Connection conn = Queries.getConnection(Main.dbName); PreparedStatement ps = conn.prepareStatement(query)) {
+
+            ps.setString(1, name);
+            ResultSet rs = ps.executeQuery();
+
+            if (rs.next()) {
+                employeeID = rs.getInt("employee_ID");
+            }
+
+        } catch (SQLException e) {
+            paneDatabaseError(e);
+        }
+
+        return employeeID;
+    }
+
+    public static float getRetailPricebyProductName(String product_name) {
+        float retail = 1;
+        String query = "SELECT product_retail_price FROM " + Main.tbName_ProductItem + " WHERE product_name = ?";
+
+        try (Connection conn = Queries.getConnection(Main.dbName); PreparedStatement ps = conn.prepareStatement(query)) {
+            ps.setString(1, product_name);
+            ResultSet rs = ps.executeQuery();
+
+            if (rs.next()) {
+                retail = rs.getFloat("product_retail_price");
+            }
+
+        } catch (SQLException e) {
+            paneDatabaseError(e);
+        }
+
+        return retail;
     }
 }

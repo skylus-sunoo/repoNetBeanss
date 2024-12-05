@@ -41,6 +41,7 @@ import project.WindowUtils;
 import project.search.*;
 import project.search.SearchComboBox.EnumComboBox;
 import project.search.SearchComboBoxTwo.EnumComboBoxTwo;
+import project.search.SearchComboBoxField.EnumComboBoxField;
 import project.swing.ImageRenderer;
 
 /**
@@ -56,6 +57,7 @@ public class PageCatalogs extends javax.swing.JPanel {
     private final SearchEmpty SearchEmpty = new SearchEmpty();
     private final SearchComboBox SearchComboBox = new SearchComboBox();
     private final SearchComboBoxTwo SearchComboBoxTwo = new SearchComboBoxTwo();
+    private final SearchComboBoxField SearchComboBoxField = new SearchComboBoxField();
 
     /**
      * Creates new form FormBody
@@ -82,6 +84,7 @@ public class PageCatalogs extends javax.swing.JPanel {
                 }
             }
         });
+        tableCategories.setAutoCreateRowSorter(true);
 
         tableProduct.getColumnModel().getColumn(0).setPreferredWidth(25);
         tableProduct.getColumnModel().getColumn(1).setPreferredWidth(50);
@@ -98,6 +101,7 @@ public class PageCatalogs extends javax.swing.JPanel {
                 }
             }
         });
+        tableProduct.setAutoCreateRowSorter(true);
     }
 
     public void refreshTableProduct() {
@@ -158,20 +162,13 @@ public class PageCatalogs extends javax.swing.JPanel {
         }
 
         private void checkFields() {
-            String product_category_name = fieldCategoryName.getText().trim();
+            btnAddCategory.setEnabled(!fieldCategoryName.getText().trim().isEmpty()
+                    && !fieldCategoryName.getText().trim().equals("Enter Category Name"));
 
-            boolean isValid = !product_category_name.isEmpty()
-                    && !product_category_name.equals("Enter Category Name");
-            btnAddCategory.setEnabled(isValid);
-
-            String product_name = fieldName.getText().trim();
-            String product_retail = fieldRetail.getText().trim();
-
-            isValid = !product_name.isEmpty()
-                    && !product_name.equals("Enter Product Name")
-                    && !product_retail.isEmpty()
-                    && !product_retail.equals("Enter Retail Price");
-            btnAddProduct.setEnabled(isValid);
+            btnAddProduct.setEnabled(!fieldName.getText().trim().isEmpty()
+                    && !fieldName.getText().trim().equals("Enter Product Name")
+                    && !fieldRetail.getText().trim().isEmpty()
+                    && !fieldRetail.getText().trim().equals("Enter Retail Price"));
         }
     }
 
@@ -262,6 +259,9 @@ public class PageCatalogs extends javax.swing.JPanel {
                 search.repopulateComboBox(search.selectedSearch);
                 break;
             case SearchComboBoxTwo search:
+                search.repopulateComboBox(search.selectedSearch);
+                break;
+            case SearchComboBoxField search:
                 search.repopulateComboBox(search.selectedSearch);
                 break;
             default:
@@ -645,7 +645,7 @@ public class PageCatalogs extends javax.swing.JPanel {
         labelSearch.setText("Search for Products");
 
         comboSearch.setFont(new java.awt.Font("Yu Gothic UI Semibold", 0, 12)); // NOI18N
-        comboSearch.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Everything", "Under a Category", "Under a Brand", "Under a Category and Brand", "Retail Price Greater Than", "Retail Price Lesser Than" }));
+        comboSearch.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Everything", "Under a Category", "Under a Brand", "Under a Category and Brand", "According to Retail Price" }));
         comboSearch.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 comboSearchActionPerformed(evt);
@@ -1133,6 +1133,7 @@ public class PageCatalogs extends javax.swing.JPanel {
     private void btnSearchActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSearchActionPerformed
         String selectedComboBox;
         String selectedComboBox2;
+        String selectedTextField;
 
         switch (String.valueOf(comboSearch.getSelectedItem())) {
             case "Everything":
@@ -1153,6 +1154,12 @@ public class PageCatalogs extends javax.swing.JPanel {
                 selectedComboBox = SearchComboBoxTwo.getSelectedComboBox1();
                 selectedComboBox2 = SearchComboBoxTwo.getSelectedComboBox2();
                 currentSearchQuery = "SELECT * FROM " + Main.tbName_ProductItem + " WHERE product_category = '" + selectedComboBox + "' AND product_brand = '" + selectedComboBox2 + "'";
+                refreshTableProduct();
+                break;
+            case "According to Retail Price":
+                selectedComboBox = SearchComboBoxField.getLimitValueOperator(SearchComboBoxField.getSelectedComboBox());
+                selectedTextField = SearchComboBoxField.getSelectedTextField();
+                currentSearchQuery = "SELECT * FROM " + Main.tbName_ProductItem + " WHERE product_retail_price " + selectedComboBox + " " + selectedTextField;
                 refreshTableProduct();
                 break;
             default:
@@ -1177,9 +1184,9 @@ public class PageCatalogs extends javax.swing.JPanel {
                 SearchComboBoxTwo.selectedSearch = EnumComboBoxTwo.CATEGORY_BRAND_ITEM;
                 setForm(SearchComboBoxTwo);
                 break;
-            case "Retail Price Greater Than":
-            case "Retail Price Lesser Than":
-                setForm(SearchComboBoxTwo);
+            case "According to Retail Price":
+                SearchComboBoxField.selectedSearch = EnumComboBoxField.LIMIT_VALUE;
+                setForm(SearchComboBoxField);
                 break;
             default:
                 throw new AssertionError();

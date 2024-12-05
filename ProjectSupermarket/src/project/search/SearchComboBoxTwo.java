@@ -70,15 +70,9 @@ public class SearchComboBoxTwo extends javax.swing.JPanel {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        dateSearchStart = new project.date.DateChooser();
-        dateSearchEnd = new project.date.DateChooser();
         panelMain = new javax.swing.JPanel();
         comboBox1 = new javax.swing.JComboBox<>();
         comboBox2 = new javax.swing.JComboBox<>();
-
-        dateSearchStart.setDateFormat("yyyy-MM-dd");
-
-        dateSearchEnd.setDateFormat("yyyy-MM-dd");
 
         setMaximumSize(new java.awt.Dimension(393, 35));
         setMinimumSize(new java.awt.Dimension(393, 35));
@@ -130,9 +124,7 @@ public class SearchComboBoxTwo extends javax.swing.JPanel {
         this.setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addComponent(panelMain, javax.swing.GroupLayout.PREFERRED_SIZE, 394, Short.MAX_VALUE)
-                .addContainerGap())
+            .addComponent(panelMain, javax.swing.GroupLayout.PREFERRED_SIZE, 394, Short.MAX_VALUE)
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -152,8 +144,6 @@ public class SearchComboBoxTwo extends javax.swing.JPanel {
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JComboBox<String> comboBox1;
     private javax.swing.JComboBox<String> comboBox2;
-    private project.date.DateChooser dateSearchEnd;
-    private project.date.DateChooser dateSearchStart;
     private javax.swing.JPanel panelMain;
     // End of variables declaration//GEN-END:variables
 }

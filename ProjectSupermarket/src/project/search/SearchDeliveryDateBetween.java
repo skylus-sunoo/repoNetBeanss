@@ -48,10 +48,10 @@ public class SearchDeliveryDateBetween extends javax.swing.JPanel {
         dateSearchEnd.setDateFormat("yyyy-MM-dd");
         dateSearchEnd.setTextRefernce(fieldSearchDateEnd);
 
-        setMaximumSize(new java.awt.Dimension(520, 35));
-        setMinimumSize(new java.awt.Dimension(520, 35));
+        setMaximumSize(new java.awt.Dimension(394, 35));
+        setMinimumSize(new java.awt.Dimension(394, 35));
         setOpaque(false);
-        setPreferredSize(new java.awt.Dimension(520, 35));
+        setPreferredSize(new java.awt.Dimension(394, 35));
 
         panelMain.setMaximumSize(new java.awt.Dimension(520, 35));
         panelMain.setMinimumSize(new java.awt.Dimension(520, 35));
@@ -94,14 +94,14 @@ public class SearchDeliveryDateBetween extends javax.swing.JPanel {
             panelMainLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(panelMainLayout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(fieldSearchDateStart, javax.swing.GroupLayout.PREFERRED_SIZE, 193, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(fieldSearchDateStart, javax.swing.GroupLayout.PREFERRED_SIZE, 100, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(btnSearchDateStart)
-                .addGap(41, 41, 41)
-                .addComponent(fieldSearchDateEnd, javax.swing.GroupLayout.PREFERRED_SIZE, 193, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(77, 77, 77)
+                .addComponent(fieldSearchDateEnd, javax.swing.GroupLayout.PREFERRED_SIZE, 100, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(btnSearchDateEnd)
-                .addContainerGap())
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         panelMainLayout.setVerticalGroup(
             panelMainLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -119,7 +119,7 @@ public class SearchDeliveryDateBetween extends javax.swing.JPanel {
         this.setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(panelMain, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            .addComponent(panelMain, javax.swing.GroupLayout.PREFERRED_SIZE, 394, Short.MAX_VALUE)
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)

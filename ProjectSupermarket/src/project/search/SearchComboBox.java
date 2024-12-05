@@ -15,6 +15,7 @@ public class SearchComboBox extends javax.swing.JPanel {
         BRAND_ITEM,
         CATEGORY_DELIVERY,
         CATEGORY_ITEM,
+        EMPLOYEE_NAME,
     }
     
     public EnumComboBox selectedSearch;
@@ -48,6 +49,11 @@ public class SearchComboBox extends javax.swing.JPanel {
                 case CATEGORY_ITEM: {
                     column_name = "product_category";
                     query = "SELECT DISTINCT " + column_name + " FROM " + Main.tbName_ProductItem;
+                    break;
+                }
+                case EMPLOYEE_NAME: {
+                    column_name = "employee_name";
+                    query = "SELECT DISTINCT " + column_name + " FROM " + Main.tbName_Employee;
                     break;
                 }
                 default:

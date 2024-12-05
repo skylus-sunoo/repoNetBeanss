@@ -26,6 +26,7 @@ public class Main extends javax.swing.JFrame {
     public static String tbName_ProductCategory = "TB_ProductCategory";
     public static String tbName_ProductBrand = "TB_ProductBrand";
     public static String tbName_ProductItem = "TB_ProductItems";
+    public static String tbName_SupplyHistory = "TB_SupplyHistory";
     private static int userSessionID = -1;
     private String userSessionName;
 
@@ -36,6 +37,8 @@ public class Main extends javax.swing.JFrame {
     private PageDeliver PageDeliver = new PageDeliver();
     private PageCheckout PageCheckout = new PageCheckout();
     private PageCatalogs PageCatalogs = new PageCatalogs();
+    private PageHistory PageHistory = new PageHistory();
+    
 
     /**
      * Creates new form Main
@@ -70,6 +73,10 @@ public class Main extends javax.swing.JFrame {
                     break;
                 case 4:
                     setForm(PageCheckout);
+                    break;
+                case 6:
+                    PageHistory.refreshTableHistory();
+                    setForm(PageHistory);
                     break;
                 case 9:
                     if (!isUserLogged() && !LogInFrame.isVisible()) {
