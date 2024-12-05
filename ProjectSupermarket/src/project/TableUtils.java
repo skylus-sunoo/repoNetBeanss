@@ -47,11 +47,12 @@ public class TableUtils {
                 try {
                     if (null != tableEnum) {
                         switch (tableEnum) {
+                            //<editor-fold defaultstate="collapsed" desc="STOCK DISTINCT">
                             case STOCK_DISTINCT: {
                                 String category = rs.getString("product_category");
                                 String brand = rs.getString("product_brand");
                                 String name = rs.getString("product_name");
-                                String quantity = String.valueOf(rs.getInt("product_quantity"));
+                                String remaining_quantity = String.valueOf(rs.getInt("product_remaining_quantity"));
                                 String subQuery = "SELECT product_retail_price, product_image FROM " + Main.tbName_ProductItem + " WHERE product_name = ?";
                                 try (PreparedStatement subPst = conn.prepareStatement(subQuery)) {
                                     subPst.setString(1, name);
@@ -59,22 +60,24 @@ public class TableUtils {
                                         if (subRs.next()) {
                                             String retailPrice = String.valueOf(subRs.getFloat("product_retail_price"));
                                             ImageIcon imageIcon = blobToImage(subRs, "product_image");
-
+                                            
                                             model.addRow(new Object[]{
-                                                category, brand, name, retailPrice, quantity, imageIcon
+                                                category, brand, name, retailPrice, remaining_quantity, imageIcon
                                             });
                                         }
                                     }
                                 }
                                 break;
                             }
+                            //</editor-fold>
+                            //<editor-fold defaultstate="collapsed" desc="STOCK DELIVERY">
                             case STOCK_DELIVERY: {
                                 String productID = rs.getString("product_ID");
                                 String category = rs.getString("product_category");
                                 String brand = rs.getString("product_brand");
                                 String name = rs.getString("product_name");
                                 String price = String.valueOf(rs.getFloat("product_price"));
-                                String quantity = String.valueOf(rs.getInt("product_quantity"));
+                                String quantity = String.valueOf(rs.getInt("product_remaining_quantity")) + "/" + String.valueOf(rs.getInt("product_quantity"));
                                 String totalPrice = String.valueOf(rs.getFloat("product_totalPrice"));
                                 String deliveryDate = rs.getString("product_deliveryDate");
                                 int ID = rs.getInt("employee_ID");
@@ -84,7 +87,9 @@ public class TableUtils {
                                 });
                                 break;
                             }
-                            case CATALOG_PRODUCT:
+                            //</editor-fold>
+                            //<editor-fold defaultstate="collapsed" desc="CATALOG PRODUCT">
+                            case CATALOG_PRODUCT: {
                                 String product_ID = rs.getString("ID");
                                 String product_category = rs.getString("product_category");
                                 String product_brand = rs.getString("product_brand");
@@ -95,6 +100,8 @@ public class TableUtils {
                                     product_ID, product_category, product_brand, product_name, product_retail_price, imageIcon
                                 });
                                 break;
+                            }
+                            //</editor-fold>
                             default:
                                 break;
                         }

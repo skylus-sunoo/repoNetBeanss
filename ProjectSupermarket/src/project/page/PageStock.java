@@ -25,14 +25,14 @@ public class PageStock extends javax.swing.JPanel {
         tableProduct.getColumnModel().getColumn(5).setPreferredWidth(150);
         tableProduct.getColumnModel().getColumn(5).setCellRenderer(new ImageRenderer());
         tableProduct.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
-        TableUtils.refreshTable(tableProduct, "SELECT product_category, product_brand, product_name, SUM(product_quantity) AS product_quantity FROM "
+        TableUtils.refreshTable(tableProduct, "SELECT product_category, product_brand, product_name, SUM(product_remaining_quantity) AS product_remaining_quantity FROM "
                 + Main.tbName_ProductStock + " GROUP BY product_category, product_brand, product_name", TableUtils.TableEnum.STOCK_DISTINCT);
 
         tableProduct.setDefaultEditor(Object.class, null);
     }
 
     public void refreshTableProduct() {
-        TableUtils.refreshTable(tableProduct, "SELECT product_category, product_brand, product_name, SUM(product_quantity) AS product_quantity FROM "
+        TableUtils.refreshTable(tableProduct, "SELECT product_category, product_brand, product_name, SUM(product_remaining_quantity) AS product_remaining_quantity FROM "
                 + Main.tbName_ProductStock + " GROUP BY product_category, product_brand, product_name", TableUtils.TableEnum.STOCK_DISTINCT);
     }
 

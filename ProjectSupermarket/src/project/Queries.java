@@ -56,6 +56,25 @@ public class Queries {
         }
     }
 
+    public static void resetPrimaryKey(String tbName) {
+        String query = "SELECT COUNT(*) FROM " + tbName;
+        try (Connection conn = Queries.getConnection(Main.dbName); PreparedStatement pst = Queries.prepareQuery(conn, query); ResultSet rs = pst.executeQuery()) {
+            if (rs.next()) {
+                int rowCount = rs.getInt(1);
+
+                String alterQuery = "ALTER TABLE " + tbName + " AUTO_INCREMENT = ?";
+                try (PreparedStatement alterPst = conn.prepareStatement(alterQuery)) {
+                    alterPst.setInt(1, rowCount + 1); 
+                    alterPst.executeUpdate();
+                } catch (SQLException e) {
+                    paneDatabaseError(e);
+                }
+            }
+        } catch (SQLException e) {
+            paneDatabaseError(e);
+        }
+    }
+
     public static void repopulateComboBox(JComboBox comboBox, String columnName, String query) {
         Set<String> uniqueItems = new HashSet<>();
         try (Connection conn = Queries.getConnection(Main.dbName); PreparedStatement pst = Queries.prepareQuery(conn, query); ResultSet rs = pst.executeQuery()) {

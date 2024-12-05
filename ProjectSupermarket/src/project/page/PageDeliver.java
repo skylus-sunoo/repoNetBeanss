@@ -3,7 +3,6 @@ package project.page;
 import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.KeyEvent;
 import java.io.FileNotFoundException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -22,10 +21,11 @@ import project.Main;
 import project.Queries;
 import project.TableUtils;
 import static project.TableUtils.refreshTable;
-import static project.TableUtils.refreshTableAll;
 import static project.MainUtils.*;
 import project.WindowUtils;
 import project.search.*;
+import project.search.SearchComboBox.EnumComboBox;
+import project.search.SearchComboBoxTwo.EnumComboBoxTwo;
 
 /**
  *
@@ -37,9 +37,8 @@ public class PageDeliver extends javax.swing.JPanel {
 
     // Pages
     private final SearchEmpty SearchEmpty = new SearchEmpty();
-    private final SearchCategory SearchCategory = new SearchCategory();
-    private final SearchBrand SearchBrand = new SearchBrand();
-    private final SearchCategoryBrand SearchCategoryBrand = new SearchCategoryBrand();
+    private final SearchComboBox SearchComboBox = new SearchComboBox();
+    private final SearchComboBoxTwo SearchComboBoxTwo = new SearchComboBoxTwo();
     private final SearchDeliveryDateSingle SearchDeliveryDateSingle = new SearchDeliveryDateSingle();
     private final SearchDeliveryDateBetween SearchDeliveryDateBetween = new SearchDeliveryDateBetween();
 
@@ -87,14 +86,14 @@ public class PageDeliver extends javax.swing.JPanel {
         panelSearch.revalidate();
 
         switch (com) {
-            case SearchCategory searchCategory ->
-                searchCategory.repopulateComboBox(this);
-            case SearchBrand searchBrand ->
-                searchBrand.repopulateComboBox(this);
-            case SearchCategoryBrand searchCategoryBrand ->
-                searchCategoryBrand.repopulateComboBox(this);
-            default -> {
-            }
+            case SearchComboBox search:
+                search.repopulateComboBox(search.selectedSearch);
+                break;
+            case SearchComboBoxTwo search:
+                search.repopulateComboBox(search.selectedSearch);
+                break;
+            default:
+                break;
         }
     }
 
@@ -109,6 +108,9 @@ public class PageDeliver extends javax.swing.JPanel {
         String name = (String) tableProduct.getValueAt(selectedRow, 3);
         String price = (String) tableProduct.getValueAt(selectedRow, 4);
         String quantity = (String) tableProduct.getValueAt(selectedRow, 5);
+        String[] parts = quantity.split("/");
+        String remaining_quantity = parts[0];
+        quantity = remaining_quantity;
         String dod = (String) tableProduct.getValueAt(selectedRow, 7);
 
         fieldID.setText(id);
@@ -157,8 +159,8 @@ public class PageDeliver extends javax.swing.JPanel {
 
             String employee_id = String.valueOf(project.Main.getUserSessionID());
 
-            String query = "INSERT INTO " + Main.tbName_ProductStock + " (product_category, product_brand, product_name, product_price, product_quantity, product_deliveryDate, employee_id)\n"
-                    + "VALUES (?, ?, ?, ?, ?, ?, ?)";
+            String query = "INSERT INTO " + Main.tbName_ProductStock + " (product_category, product_brand, product_name, product_price, product_remaining_quantity, product_quantity, product_deliveryDate, employee_id)\n"
+                    + "VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
 
             try (Connection conn = Queries.getConnection(Main.dbName);) {
                 PreparedStatement pst = conn.prepareStatement(query);
@@ -166,9 +168,10 @@ public class PageDeliver extends javax.swing.JPanel {
                 pst.setString(2, product_brand);
                 pst.setString(3, product_name);
                 pst.setString(4, product_price);
-                pst.setString(5, product_quantity);
-                pst.setString(6, product_deliveryDate);
-                pst.setString(7, employee_id);
+                pst.setString(5, product_quantity); // remaining qty
+                pst.setString(6, product_quantity);
+                pst.setString(7, product_deliveryDate);
+                pst.setString(8, employee_id);
                 pst.executeUpdate();
 
                 clearFields();
@@ -191,7 +194,7 @@ public class PageDeliver extends javax.swing.JPanel {
                     "Warning: Update",
                     JOptionPane.YES_NO_OPTION
             );
-            
+
             if (warnUser == JOptionPane.YES_OPTION) {
                 int id = Integer.parseInt(fieldID.getText());
                 String product_category = comboCategory.getSelectedItem().toString();
@@ -203,7 +206,7 @@ public class PageDeliver extends javax.swing.JPanel {
 
                 String employee_id = String.valueOf(project.Main.getUserSessionID());
 
-                String query = "UPDATE " + Main.tbName_ProductStock + " SET product_category = ?, product_brand = ?, product_name = ?, product_price = ?, product_quantity = ?, product_deliveryDate = ?, employee_id = ? WHERE product_ID = ?";
+                String query = "UPDATE " + Main.tbName_ProductStock + " SET product_category = ?, product_brand = ?, product_name = ?, product_price = ?, product_remaining_quantity = ?, product_deliveryDate = ?, employee_id = ? WHERE product_ID = ?";
 
                 try (Connection conn = Queries.getConnection(Main.dbName);) {
                     PreparedStatement pst = conn.prepareStatement(query);
@@ -250,6 +253,7 @@ public class PageDeliver extends javax.swing.JPanel {
 
                     clearFields();
                     refreshTableProduct();
+                    Queries.resetPrimaryKey(Main.tbName_ProductStock);
                 } catch (SQLException e) {
                     paneDatabaseError(e);
                 }
@@ -372,9 +376,9 @@ public class PageDeliver extends javax.swing.JPanel {
         panelSearch = new javax.swing.JPanel();
         labelSearch = new javax.swing.JLabel();
         comboSearch = new javax.swing.JComboBox<>();
-        btnSearch = new javax.swing.JButton();
         scrollProduct = new javax.swing.JScrollPane();
         tableProduct = new project.swing.Table();
+        btnSearch = new javax.swing.JButton();
 
         dateDOD.setDateFormat("yyyy-MM-dd");
         dateDOD.setTextRefernce(fieldDOD);
@@ -711,7 +715,8 @@ public class PageDeliver extends javax.swing.JPanel {
                 .addGap(6, 6, 6)
                 .addComponent(separatorDOD, javax.swing.GroupLayout.PREFERRED_SIZE, 10, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(64, 64, 64)
-                .addComponent(panelButtons, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addComponent(panelButtons, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(380, 380, 380))
         );
 
         panelSearch.setMaximumSize(new java.awt.Dimension(520, 35));
@@ -731,13 +736,6 @@ public class PageDeliver extends javax.swing.JPanel {
             }
         });
 
-        btnSearch.setText("Search");
-        btnSearch.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                btnSearchActionPerformed(evt);
-            }
-        });
-
         scrollProduct.setBorder(null);
 
         tableProduct.setModel(new javax.swing.table.DefaultTableModel(
@@ -754,6 +752,13 @@ public class PageDeliver extends javax.swing.JPanel {
         tableProduct.setFont(new java.awt.Font("Yu Gothic UI Semibold", 0, 12)); // NOI18N
         scrollProduct.setViewportView(tableProduct);
 
+        btnSearch.setText("Search");
+        btnSearch.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnSearchActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout panelBodyLayout = new javax.swing.GroupLayout(panelBody);
         panelBody.setLayout(panelBodyLayout);
         panelBodyLayout.setHorizontalGroup(
@@ -762,15 +767,15 @@ public class PageDeliver extends javax.swing.JPanel {
                 .addGap(16, 16, 16)
                 .addComponent(panelMain, javax.swing.GroupLayout.PREFERRED_SIZE, 357, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(6, 6, 6)
-                .addGroup(panelBodyLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addGroup(panelBodyLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                     .addGroup(panelBodyLayout.createSequentialGroup()
                         .addComponent(labelSearch)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(comboSearch, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(btnSearch)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(panelSearch, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addGap(95, 95, 95)
+                        .addComponent(panelSearch, javax.swing.GroupLayout.PREFERRED_SIZE, 393, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(btnSearch))
                     .addComponent(scrollProduct, javax.swing.GroupLayout.PREFERRED_SIZE, 991, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addContainerGap(19, Short.MAX_VALUE))
         );
@@ -786,12 +791,12 @@ public class PageDeliver extends javax.swing.JPanel {
                         .addGroup(panelBodyLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
                             .addGroup(panelBodyLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                                 .addComponent(labelSearch, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addComponent(comboSearch, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addComponent(btnSearch))
-                            .addComponent(panelSearch, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                .addComponent(comboSearch, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addComponent(panelSearch, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(btnSearch))
                         .addGap(12, 12, 12)
                         .addComponent(scrollProduct, javax.swing.GroupLayout.PREFERRED_SIZE, 769, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(0, 12, Short.MAX_VALUE)))
+                        .addGap(0, 0, Short.MAX_VALUE)))
                 .addContainerGap())
         );
 
@@ -873,9 +878,8 @@ public class PageDeliver extends javax.swing.JPanel {
     }//GEN-LAST:event_btnClearProductActionPerformed
 
     private void btnSearchActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSearchActionPerformed
-        String query;
-        String selectedCategory;
-        String selectedBrand;
+        String selectedComboBox;
+        String selectedComboBox2;
         String startDateString;
         String endDateString;
         LocalDate startDate;
@@ -886,19 +890,19 @@ public class PageDeliver extends javax.swing.JPanel {
                 refreshTableProduct();
                 break;
             case "Under a Category":
-                selectedCategory = SearchCategory.getSelectedCategory();
-                currentSearchQuery = "SELECT * FROM " + Main.tbName_ProductStock + " WHERE product_category = '" + selectedCategory + "'";
+                selectedComboBox = SearchComboBox.getSelectedComboBox();
+                currentSearchQuery = "SELECT * FROM " + Main.tbName_ProductStock + " WHERE product_category = '" + selectedComboBox + "'";
                 refreshTableProduct();
                 break;
             case "Under a Brand":
-                selectedBrand = SearchBrand.getSelectedBrand();
-                currentSearchQuery = "SELECT * FROM " + Main.tbName_ProductStock + " WHERE product_brand = '" + selectedBrand + "'";
+                selectedComboBox2 = SearchComboBox.getSelectedComboBox();
+                currentSearchQuery = "SELECT * FROM " + Main.tbName_ProductStock + " WHERE product_brand = '" + selectedComboBox2 + "'";
                 refreshTableProduct();
                 break;
             case "Under a Category and Brand":
-                selectedCategory = SearchCategoryBrand.getSelectedCategory();
-                selectedBrand = SearchCategoryBrand.getSelectedBrand();
-                currentSearchQuery = "SELECT * FROM " + Main.tbName_ProductStock + " WHERE product_category = '" + selectedCategory + "' AND product_brand = '" + selectedBrand + "'";
+                selectedComboBox = SearchComboBoxTwo.getSelectedComboBox1();
+                selectedComboBox2 = SearchComboBoxTwo.getSelectedComboBox2();
+                currentSearchQuery = "SELECT * FROM " + Main.tbName_ProductStock + " WHERE product_category = '" + selectedComboBox + "' AND product_brand = '" + selectedComboBox2 + "'";
                 refreshTableProduct();
                 break;
             case "Delivered after a date":
@@ -939,13 +943,16 @@ public class PageDeliver extends javax.swing.JPanel {
                 setForm(SearchEmpty);
                 break;
             case "Under a Category":
-                setForm(SearchCategory);
+                SearchComboBox.selectedSearch = EnumComboBox.CATEGORY_DELIVERY;
+                setForm(SearchComboBox);
                 break;
             case "Under a Brand":
-                setForm(SearchBrand);
+                SearchComboBox.selectedSearch = EnumComboBox.BRAND_DELIVERY;
+                setForm(SearchComboBox);
                 break;
             case "Under a Category and Brand":
-                setForm(SearchCategoryBrand);
+                SearchComboBoxTwo.selectedSearch = EnumComboBoxTwo.CATEGORY_BRAND_DELIVERY;
+                setForm(SearchComboBoxTwo);
                 break;
             case "Delivered after a date":
             case "Delivered before a date":

@@ -39,6 +39,8 @@ import project.Queries;
 import static project.TableUtils.*;
 import project.WindowUtils;
 import project.search.*;
+import project.search.SearchComboBox.EnumComboBox;
+import project.search.SearchComboBoxTwo.EnumComboBoxTwo;
 import project.swing.ImageRenderer;
 
 /**
@@ -52,9 +54,8 @@ public class PageCatalogs extends javax.swing.JPanel {
 
     // Pages
     private final SearchEmpty SearchEmpty = new SearchEmpty();
-    private final SearchCategory SearchCategory = new SearchCategory();
-    private final SearchBrand SearchBrand = new SearchBrand();
-    private final SearchCategoryBrand SearchCategoryBrand = new SearchCategoryBrand();
+    private final SearchComboBox SearchComboBox = new SearchComboBox();
+    private final SearchComboBoxTwo SearchComboBoxTwo = new SearchComboBoxTwo();
 
     /**
      * Creates new form FormBody
@@ -257,14 +258,14 @@ public class PageCatalogs extends javax.swing.JPanel {
         panelSearch.revalidate();
 
         switch (com) {
-            case SearchCategory searchCategory ->
-                searchCategory.repopulateComboBox(this);
-            case SearchBrand searchBrand ->
-                searchBrand.repopulateComboBox(this);
-            case SearchCategoryBrand searchCategoryBrand ->
-                searchCategoryBrand.repopulateComboBox(this);
-            default -> {
-            }
+            case SearchComboBox search:
+                search.repopulateComboBox(search.selectedSearch);
+                break;
+            case SearchComboBoxTwo search:
+                search.repopulateComboBox(search.selectedSearch);
+                break;
+            default:
+                break;
         }
     }
 
@@ -714,26 +715,26 @@ public class PageCatalogs extends javax.swing.JPanel {
                         .addComponent(labelSearch)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(comboSearch, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(btnSearch)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addComponent(panelSearch, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
-                .addGap(14, 14, 14))
+                        .addGap(91, 91, 91)
+                        .addComponent(panelSearch, javax.swing.GroupLayout.PREFERRED_SIZE, 393, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(btnSearch)))
+                .addGap(92, 92, 92))
         );
         panelProductsLayout.setVerticalGroup(
             panelProductsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(panelProductsLayout.createSequentialGroup()
+                .addContainerGap()
                 .addGroup(panelProductsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(panelProductsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                        .addComponent(labelItems, javax.swing.GroupLayout.PREFERRED_SIZE, 52, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(comboSearch, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(labelSearch))
                     .addGroup(panelProductsLayout.createSequentialGroup()
-                        .addContainerGap()
-                        .addGroup(panelProductsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                            .addComponent(labelItems, javax.swing.GroupLayout.PREFERRED_SIZE, 52, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(8, 8, 8)
+                        .addGroup(panelProductsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
                             .addComponent(btnSearch)
-                            .addComponent(comboSearch, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(labelSearch)))
-                    .addGroup(panelProductsLayout.createSequentialGroup()
-                        .addGap(14, 14, 14)
-                        .addComponent(panelSearch, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                            .addComponent(panelSearch, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(panelProductsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(panelProductsLayout.createSequentialGroup()
@@ -903,6 +904,7 @@ public class PageCatalogs extends javax.swing.JPanel {
 
                     clearCategoryFields();
                     refreshTableCategories();
+                    Queries.resetPrimaryKey(Main.tbName_ProductCategory);
                 } catch (SQLException e) {
                     if (e.getErrorCode() == 1451) {
                         JOptionPane.showMessageDialog(this,
@@ -1105,6 +1107,7 @@ public class PageCatalogs extends javax.swing.JPanel {
 
                     clearProductFields();
                     refreshTableProduct();
+                    Queries.resetPrimaryKey(Main.tbName_ProductItem);
                 } catch (SQLException e) {
                     paneDatabaseError(e);
                 }
@@ -1128,8 +1131,8 @@ public class PageCatalogs extends javax.swing.JPanel {
     }//GEN-LAST:event_fieldRetailKeyTyped
 
     private void btnSearchActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSearchActionPerformed
-        String selectedCategory;
-        String selectedBrand;
+        String selectedComboBox;
+        String selectedComboBox2;
 
         switch (String.valueOf(comboSearch.getSelectedItem())) {
             case "Everything":
@@ -1137,19 +1140,19 @@ public class PageCatalogs extends javax.swing.JPanel {
                 refreshTableProduct();
                 break;
             case "Under a Category":
-                selectedCategory = SearchCategory.getSelectedCategory();
-                currentSearchQuery = "SELECT * FROM " + Main.tbName_ProductItem + " WHERE product_category = '" + selectedCategory + "'";
+                selectedComboBox = SearchComboBox.getSelectedComboBox();
+                currentSearchQuery = "SELECT * FROM " + Main.tbName_ProductItem + " WHERE product_category = '" + selectedComboBox + "'";
                 refreshTableProduct();
                 break;
             case "Under a Brand":
-                selectedBrand = SearchBrand.getSelectedBrand();
-                currentSearchQuery = "SELECT * FROM " + Main.tbName_ProductItem + " WHERE product_brand = '" + selectedBrand + "'";
+                selectedComboBox = SearchComboBox.getSelectedComboBox();
+                currentSearchQuery = "SELECT * FROM " + Main.tbName_ProductItem + " WHERE product_brand = '" + selectedComboBox + "'";
                 refreshTableProduct();
                 break;
             case "Under a Category and Brand":
-                selectedCategory = SearchCategoryBrand.getSelectedCategory();
-                selectedBrand = SearchCategoryBrand.getSelectedBrand();
-                currentSearchQuery = "SELECT * FROM " + Main.tbName_ProductItem + " WHERE product_category = '" + selectedCategory + "' AND product_brand = '" + selectedBrand + "'";
+                selectedComboBox = SearchComboBoxTwo.getSelectedComboBox1();
+                selectedComboBox2 = SearchComboBoxTwo.getSelectedComboBox2();
+                currentSearchQuery = "SELECT * FROM " + Main.tbName_ProductItem + " WHERE product_category = '" + selectedComboBox + "' AND product_brand = '" + selectedComboBox2 + "'";
                 refreshTableProduct();
                 break;
             default:
@@ -1163,17 +1166,20 @@ public class PageCatalogs extends javax.swing.JPanel {
                 setForm(SearchEmpty);
                 break;
             case "Under a Category":
-                setForm(SearchCategory);
+                SearchComboBox.selectedSearch = EnumComboBox.CATEGORY_ITEM;
+                setForm(SearchComboBox);
                 break;
             case "Under a Brand":
-                setForm(SearchBrand);
+                SearchComboBox.selectedSearch = EnumComboBox.BRAND_ITEM;
+                setForm(SearchComboBox);
                 break;
             case "Under a Category and Brand":
-                setForm(SearchCategoryBrand);
+                SearchComboBoxTwo.selectedSearch = EnumComboBoxTwo.CATEGORY_BRAND_ITEM;
+                setForm(SearchComboBoxTwo);
                 break;
             case "Retail Price Greater Than":
             case "Retail Price Lesser Than":
-                setForm(SearchCategoryBrand);
+                setForm(SearchComboBoxTwo);
                 break;
             default:
                 throw new AssertionError();
