@@ -3,7 +3,6 @@ package project.page;
 import javax.swing.JTable;
 import project.Main;
 import project.TableUtils;
-import project.swing.ImageRenderer;
 
 /**
  *

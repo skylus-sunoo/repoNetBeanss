@@ -823,9 +823,15 @@ public class PageCatalogs extends javax.swing.JPanel {
                 String query = "INSERT INTO " + Main.tbName_ProductCategory + " (product_category) VALUES (?)";
 
                 try (Connection conn = Queries.getConnection(Main.dbName);) {
-                    PreparedStatement pst = conn.prepareStatement(query);
+                    PreparedStatement pst = conn.prepareStatement(query, PreparedStatement.RETURN_GENERATED_KEYS);
                     pst.setString(1, product_category_name);
                     pst.executeUpdate();
+
+                    ResultSet generatedKeys = pst.getGeneratedKeys();
+                    if (generatedKeys.next()) {
+                        int id = generatedKeys.getInt(1);
+                        Queries.addSupplyHistoryEntry(Queries.EnumHistory.CATALOG_CATEGORY_ADD, "[" + id + "] " + product_category_name);
+                    }
 
                     clearCategoryFields();
                     refreshTableCategories();
@@ -856,6 +862,32 @@ public class PageCatalogs extends javax.swing.JPanel {
                 );
 
                 if (warnUser == JOptionPane.YES_OPTION) {
+                    String queryHistory = "SELECT * FROM " + Main.tbName_ProductCategory + " WHERE product_category_ID = ?";
+                    try (Connection conn = Queries.getConnection(Main.dbName);) {
+                        PreparedStatement pst = conn.prepareStatement(queryHistory);
+                        pst.setInt(1, id);
+
+                        ResultSet rs = pst.executeQuery();
+
+                        if (rs.next()) {
+                            String old_category = rs.getString("product_category");
+                            int num_changes = 0;
+
+                            StringBuilder changeLog = new StringBuilder("[" + id + "] | ");
+                            if (!old_category.equals(product_category_name)) {
+                                changeLog.append("Category: ").append(old_category).append(" -> ").append(product_category_name).append("; ");
+                                num_changes++;
+                            }
+
+                            // add entry if there are changes
+                            if (num_changes > 0) {
+                                Queries.addSupplyHistoryEntry(Queries.EnumHistory.CATALOG_CATEGORY_UPDATE, changeLog.toString());
+                            }
+                        }
+                    } catch (SQLException e) {
+                        paneDatabaseError(e);
+                    }
+
                     String query = "UPDATE " + Main.tbName_ProductCategory + " SET product_category = ? WHERE product_category_ID = ?";
 
                     try (Connection conn = Queries.getConnection(Main.dbName);) {
@@ -894,6 +926,23 @@ public class PageCatalogs extends javax.swing.JPanel {
 
             if (warnUser == JOptionPane.YES_OPTION) {
                 int id = Integer.parseInt(fieldID.getText());
+
+                String queryHistory = "SELECT * FROM " + Main.tbName_ProductCategory + " WHERE product_category_ID = ?";
+                try (Connection conn = Queries.getConnection(Main.dbName);) {
+                    PreparedStatement pst = conn.prepareStatement(queryHistory);
+                    pst.setInt(1, id);
+
+                    ResultSet rs = pst.executeQuery();
+
+                    if (rs.next()) {
+                        String product_category = rs.getString("product_category");
+
+                        Queries.addSupplyHistoryEntry(Queries.EnumHistory.CATALOG_CATEGORY_DELETE, "[" + id + "] " + product_category);
+                    }
+                } catch (SQLException e) {
+                    paneDatabaseError(e);
+                }
+
                 String query = "DELETE FROM " + Main.tbName_ProductCategory + " WHERE product_category_ID = ?";
 
                 try (Connection conn = Queries.getConnection(Main.dbName);) {
@@ -966,11 +1015,13 @@ public class PageCatalogs extends javax.swing.JPanel {
             }
 
             String product_name = fieldName.getText();
+            String product_full_name = product_category + " / " + product_brand + " / " + product_name;
+            
             if (!isAlreadyInColumn(tableProduct, product_name, 3)) {
                 query = "INSERT INTO " + Main.tbName_ProductItem + " (product_category_ID, product_category, product_brand, product_name, product_retail_price, product_image) VALUES (?, ?, ?, ?, ?, ?)";
 
                 try (Connection conn = Queries.getConnection(Main.dbName);) {
-                    PreparedStatement pst = conn.prepareStatement(query);
+                    PreparedStatement pst = conn.prepareStatement(query, PreparedStatement.RETURN_GENERATED_KEYS);
                     pst.setInt(1, product_category_ID);
                     pst.setString(2, product_category);
                     pst.setString(3, product_brand);
@@ -1003,6 +1054,12 @@ public class PageCatalogs extends javax.swing.JPanel {
                     }
 
                     pst.executeUpdate();
+
+                    ResultSet generatedKeys = pst.getGeneratedKeys();
+                    if (generatedKeys.next()) {
+                        int id = generatedKeys.getInt(1);
+                        Queries.addSupplyHistoryEntry(Queries.EnumHistory.CATALOG_PRODUCT_ADD, "[" + id + "] " + product_full_name + "  -  (Retail: " + product_retail_price + ")");
+                    }
 
                     clearProductFields();
                     refreshTableProduct();
@@ -1037,6 +1094,44 @@ public class PageCatalogs extends javax.swing.JPanel {
                 String product_category = comboCategory.getSelectedItem().toString();
                 String product_name = fieldName.getText();
                 String product_retail = fieldRetail.getText();
+
+                String queryHistory = "SELECT * FROM " + Main.tbName_ProductItem + " WHERE ID = ?";
+                try (Connection conn = Queries.getConnection(Main.dbName);) {
+                    PreparedStatement pst = conn.prepareStatement(queryHistory);
+                    pst.setInt(1, id);
+
+                    ResultSet rs = pst.executeQuery();
+
+                    if (rs.next()) {
+                        String old_category = rs.getString("product_category");
+                        String old_brand = rs.getString("product_brand");
+                        String old_name = rs.getString("product_name");
+                        String old_price = rs.getString("product_retail_price");
+                        String product_full_name = old_category + " / " + old_brand + " / " + old_name;
+                        int num_changes = 0;
+
+                        StringBuilder changeLog = new StringBuilder("[" + id + "] " + product_full_name + " | ");
+                        if (!old_category.equals(product_category)) {
+                            changeLog.append("Category: ").append(old_category).append(" -> ").append(product_category).append("; ");
+                            num_changes++;
+                        }
+                        if (!old_name.equals(product_name)) {
+                            changeLog.append("Name: ").append(old_name).append(" -> ").append(product_name).append("; ");
+                            num_changes++;
+                        }
+                        if (!old_price.equals(product_retail)) {
+                            changeLog.append("Price: ").append(old_price).append(" -> ").append(product_retail).append("; ");
+                            num_changes++;
+                        }
+
+                        // add entry if there are changes
+                        if (num_changes > 0) {
+                            Queries.addSupplyHistoryEntry(Queries.EnumHistory.CATALOG_PRODUCT_UPDATE, changeLog.toString());
+                        }
+                    }
+                } catch (SQLException e) {
+                    paneDatabaseError(e);
+                }
 
                 String query = "UPDATE " + Main.tbName_ProductItem + " SET product_category = ?, product_name = ?, product_retail_price = ?  WHERE ID = ?";
 
@@ -1097,6 +1192,26 @@ public class PageCatalogs extends javax.swing.JPanel {
 
             if (warnUser == JOptionPane.YES_OPTION) {
                 int id = Integer.parseInt(fieldProductID.getText());
+
+                String queryHistory = "SELECT * FROM " + Main.tbName_ProductItem + " WHERE ID = ?";
+                try (Connection conn = Queries.getConnection(Main.dbName);) {
+                    PreparedStatement pst = conn.prepareStatement(queryHistory);
+                    pst.setInt(1, id);
+
+                    ResultSet rs = pst.executeQuery();
+
+                    if (rs.next()) {
+                        String product_category = rs.getString("product_category");
+                        String product_brand = rs.getString("product_brand");
+                        String product_name = rs.getString("product_name");
+                        String product_full_name = product_category + " / " + product_brand + " / " + product_name;
+
+                        Queries.addSupplyHistoryEntry(Queries.EnumHistory.CATALOG_PRODUCT_DELETE, "[" + id + "] " + product_full_name);
+                    }
+                } catch (SQLException e) {
+                    paneDatabaseError(e);
+                }
+
                 String query = "DELETE FROM " + Main.tbName_ProductItem + " WHERE ID = ?";
 
                 try (Connection conn = Queries.getConnection(Main.dbName);) {
@@ -1163,7 +1278,8 @@ public class PageCatalogs extends javax.swing.JPanel {
                 refreshTableProduct();
                 break;
             default:
-                throw new AssertionError();
+//                throw new AssertionError();
+                break;
         }
     }//GEN-LAST:event_btnSearchActionPerformed
 
@@ -1189,7 +1305,8 @@ public class PageCatalogs extends javax.swing.JPanel {
                 setForm(SearchComboBoxField);
                 break;
             default:
-                throw new AssertionError();
+//                throw new AssertionError();
+                break;
         }
     }//GEN-LAST:event_comboSearchActionPerformed
 

@@ -1077,7 +1077,8 @@ public class PageDeliver extends javax.swing.JPanel {
                 refreshTableProduct();
                 break;
             default:
-                throw new AssertionError();
+//                throw new AssertionError();
+                break;
         }
     }//GEN-LAST:event_btnSearchActionPerformed
 
@@ -1116,7 +1117,8 @@ public class PageDeliver extends javax.swing.JPanel {
                 setForm(SearchComboBox);
                 break;
             default:
-                throw new AssertionError();
+//                throw new AssertionError()
+                break;
         }
     }//GEN-LAST:event_comboSearchActionPerformed
 

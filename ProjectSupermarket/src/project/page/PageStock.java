@@ -241,11 +241,14 @@ public class PageStock extends javax.swing.JPanel {
             case "According to Quantity":
                 selectedComboBox = SearchComboBoxField.getLimitValueOperator(SearchComboBoxField.getSelectedComboBox());
                 selectedTextField = SearchComboBoxField.getSelectedTextField();
-                currentSearchQuery = "SELECT product_category, product_brand, product_name, SUM(product_remaining_quantity) AS product_remaining_quantity FROM "
-                        + Main.tbName_ProductStock + " WHERE product_remaining_quantity " + selectedComboBox + " " + selectedTextField + " GROUP BY product_category, product_brand, product_name";
+                currentSearchQuery = "SELECT product_category, product_brand, product_name, SUM(product_remaining_quantity) AS product_remaining_quantity "
+                        + "FROM " + Main.tbName_ProductStock + " "
+                        + "GROUP BY product_category, product_brand, product_name "
+                        + "HAVING SUM(product_remaining_quantity) " + selectedComboBox + " " + selectedTextField;
                 refreshTableProduct();
             default:
-                throw new AssertionError();
+//                throw new AssertionError();
+                break;
         }
     }//GEN-LAST:event_btnSearchActionPerformed
 
@@ -271,7 +274,8 @@ public class PageStock extends javax.swing.JPanel {
                 setForm(SearchComboBoxField);
                 break;
             default:
-                throw new AssertionError();
+//                throw new AssertionError();
+                break;
         }
     }//GEN-LAST:event_comboSearchActionPerformed
 
